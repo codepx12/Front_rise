@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { Trash2, Edit2, Plus, Search, Users } from 'lucide-react';
+import { Trash2, Edit2, Plus, Search, Users, List, Grid3x3, Eye } from 'lucide-react';
 import apiClient, { getProfileImageUrl } from '../services/api';
 import AdminLayout from '../components/AdminLayout';
 
@@ -14,6 +14,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
   useEffect(() => {
     if (user?.role !== 'Admin') {
@@ -88,15 +89,81 @@ export default function AdminUsersPage() {
 
   return (
     <AdminLayout pageTitle="Gestion des Utilisateurs">
+      <style>{`
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .grid-view-enter {
+          animation: scaleIn 0.3s ease-out;
+        }
+
+        .list-view-enter {
+          animation: slideIn 0.3s ease-out;
+        }
+
+        .view-transition {
+          transition: opacity 0.2s ease-out;
+        }
+      `}</style>
+
       <div className="w-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4 mb-6 md:mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h2>
-          <button
-            onClick={() => navigate('/admin/users/create')}
-            className="flex items-center gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-800 hover:to-gray-700 rounded-xl transition font-semibold text-white shadow-lg backdrop-blur-sm border border-gray-600/30 text-sm md:text-base whitespace-nowrap"
-          >
-            <Plus size={18} className="md:size-5" /> <span className="hidden sm:inline">Ajouter Utilisateur</span><span className="sm:hidden">+</span>
-          </button>
+          <div className="flex gap-2 items-center">
+            {/* View Mode Toggle */}
+            <div className="flex gap-1 bg-white/20 backdrop-blur-3xl rounded-xl border border-white/30 p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl transition duration-200 font-semibold text-sm md:text-base flex items-center gap-2 ${
+                  viewMode === 'grid'
+                    ? 'bg-white/40 text-gray-950 shadow-md'
+                    : 'text-gray-700 hover:text-gray-950'
+                }`}
+                title="Vue grille"
+              >
+                <Grid3x3 size={18} />
+                <span className="hidden sm:inline">Grille</span>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl transition duration-200 font-semibold text-sm md:text-base flex items-center gap-2 ${
+                  viewMode === 'list'
+                    ? 'bg-white/40 text-gray-950 shadow-md'
+                    : 'text-gray-700 hover:text-gray-950'
+                }`}
+                title="Vue liste"
+              >
+                <List size={18} />
+                <span className="hidden sm:inline">Liste</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => navigate('/admin/users/create')}
+              className="flex items-center gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-800 hover:to-gray-700 rounded-xl transition font-semibold text-white shadow-lg backdrop-blur-sm border border-gray-600/30 text-sm md:text-base whitespace-nowrap"
+            >
+              <Plus size={18} className="md:size-5" /> <span className="hidden sm:inline">Ajouter Utilisateur</span><span className="sm:hidden">+</span>
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -130,15 +197,16 @@ export default function AdminUsersPage() {
           </select>
         </div>
 
-        {/* Users Grid */}
+        {/* Users Display */}
         {filteredUsers.length === 0 ? (
           <div className="text-center py-12 md:py-16 bg-white/20 backdrop-blur-3xl rounded-2xl md:rounded-3xl border border-white/30 shadow-xl">
             <Users className="mx-auto mb-4 text-gray-600" size={40} />
             <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2">Aucun utilisateur trouvé</h2>
             <p className="text-sm md:text-base text-gray-700">Ajustez vos filtres de recherche</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        ) : viewMode === 'grid' ? (
+          // Grid View
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 grid-view-enter">
             {filteredUsers.map((u) => (
               <div
                 key={u.id}
@@ -207,6 +275,13 @@ export default function AdminUsersPage() {
                       <Trash2 size={14} />
                       <span className="hidden sm:inline">Suppr</span>
                     </button>
+                    <button
+                      onClick={() => navigate(`/profile/${u.id}`)}
+                      className="flex-1 px-3 py-2 bg-white/25 backdrop-blur-2xl hover:bg-white/35 rounded-lg md:rounded-xl transition text-xs md:text-sm font-semibold text-gray-950 border border-white/30 shadow-md flex items-center justify-center gap-1"
+                    >
+                      <Eye size={14} />
+                      <span className="hidden sm:inline">Voir profil</span>
+                    </button>
                   </div>
 
                   {/* Delete Confirmation */}
@@ -234,6 +309,105 @@ export default function AdminUsersPage() {
                     </div>
                   )}
                 </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // List View
+          <div className="space-y-3 list-view-enter">
+            {filteredUsers.map((u) => (
+              <div
+                key={u.id}
+                className="bg-white/20 backdrop-blur-3xl rounded-xl border border-white/30 shadow-md hover:shadow-lg hover:bg-white/25 transition-all duration-300 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+              >
+                {/* Profile Section */}
+                <div className="flex items-center gap-4 flex-1">
+                  <img
+                    src={getProfileImage(u)}
+                    alt={`${u.firstName} ${u.lastName}`}
+                    className="w-16 h-16 rounded-full border-2 border-white/40 shadow-md object-cover flex-shrink-0"
+                  />
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-bold text-gray-950 text-base md:text-lg truncate">
+                        {u.firstName} {u.lastName}
+                      </h3>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-full border backdrop-blur-sm flex-shrink-0 ${getRoleColor(u.role)}`}>
+                        {getRoleLabel(u.role)}
+                      </span>
+                    </div>
+                    <p className="text-xs md:text-sm text-gray-700 mb-2 truncate">
+                      {u.email}
+                    </p>
+                    
+                    {/* Details Row */}
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-700">
+                      {u.classe && (
+                        <div className="flex items-center gap-1">
+                          <span>📚</span>
+                          <span>{u.classe}</span>
+                        </div>
+                      )}
+                      {u.filiere && (
+                        <div className="flex items-center gap-1">
+                          <span>🎓</span>
+                          <span>{u.filiere}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 flex-shrink-0 sm:ml-auto">
+                  <button
+                    onClick={() => navigate(`/admin/users/edit/${u.id}`)}
+                    className="px-3 md:px-5 py-2 md:py-2.5 bg-white/25 backdrop-blur-2xl hover:bg-white/35 rounded-lg md:rounded-xl transition text-xs md:text-sm font-semibold text-gray-950 border border-white/30 shadow-md flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <Edit2 size={16} />
+                    <span className="hidden sm:inline">Éditer</span>
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(u.id)}
+                    className="px-3 md:px-5 py-2 md:py-2.5 bg-white/15 backdrop-blur-2xl hover:bg-red-500/30 rounded-lg md:rounded-xl transition text-xs md:text-sm font-semibold text-gray-950 hover:text-red-700 border border-white/30 shadow-md flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <Trash2 size={16} />
+                    <span className="hidden sm:inline">Suppr</span>
+                  </button>
+                  <button
+                    onClick={() => navigate(`/profile/${u.id}`)}
+                    className="px-3 md:px-5 py-2 md:py-2.5 bg-white/25 backdrop-blur-2xl hover:bg-white/35 rounded-lg md:rounded-xl transition text-xs md:text-sm font-semibold text-gray-950 border border-white/30 shadow-md flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <Eye size={16} />
+                    <span className="hidden sm:inline">Voir profil</span>
+                  </button>
+                </div>
+
+                {/* Delete Confirmation */}
+                {deleteConfirm === u.id && (
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl flex items-center justify-center p-3 z-50 left-0 top-0 right-0 bottom-0">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-xl p-4 text-center max-w-xs">
+                      <p className="text-sm font-semibold text-gray-900 mb-3">
+                        Supprimer {u.firstName} ?
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleDeleteUser(u.id)}
+                          className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition font-semibold text-white text-xs"
+                        >
+                          Supprimer
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(null)}
+                          className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg transition font-semibold text-gray-900 text-xs"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

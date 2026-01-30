@@ -36,9 +36,13 @@ export default function PostCard({
   fetchPosts,
 }) {
   const navigate = useNavigate();
-  const [liked, setLiked] = useState(userReactions[post.id] || false);
   const [localPost, setLocalPost] = useState(post);
   const [commentCount, setCommentCount] = useState(post.commentCount || 0);
+
+  // Synchroniser le like avec userReactions uniquement
+  useEffect(() => {
+    console.log(`[PostCard ${post.id}] Mise à jour like avec userReactions[${post.id}]:`, userReactions[post.id]);
+  }, [userReactions[post.id], post.id]);
 
   // Écouter les nouveaux commentaires via WebSocket
   useEffect(() => {
@@ -85,7 +89,6 @@ export default function PostCard({
   }, [post.id, post.commentCount]);
 
   const handleLikeClick = async () => {
-    setLiked(!liked);
     await onLike(post.id);
   };
 
@@ -280,7 +283,7 @@ export default function PostCard({
             <Heart
               size={22}
               className={`transition duration-200 ${
-                liked
+                userReactions[post.id]
                   ? 'fill-red-500 text-red-500'
                   : 'text-gray-600 group-hover:text-red-400'
               }`}

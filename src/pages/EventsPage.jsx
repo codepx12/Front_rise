@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEventStore } from '../store/eventStore';
 import { useAuthStore } from '../store/authStore';
-import { Calendar, MapPin, Users, ChevronDown, ChevronUp, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import EventRegistrationFormModal from '../components/EventRegistrationFormModal';
 
@@ -22,8 +22,10 @@ export default function EventsPage() {
   }, []);
 
   const filteredEvents = filter === 'all'
-    ? events
-    : events.filter((e) => e.type.toLowerCase() === filter.toLowerCase());
+    ? events.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    : events
+        .filter((e) => e.type.toLowerCase() === filter.toLowerCase())
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const availableEventTypes = Array.from(
     new Set(events.map(event => event.type).filter(Boolean))
@@ -74,44 +76,27 @@ export default function EventsPage() {
 
   return (
     <MainLayout>
-      {/* Page Header - Mono #2E7379 */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-end gap-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg border border-opacity-20" style={{ backgroundColor: '#2E7379' }}>
-              <Calendar size={28} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-5xl font-black text-gray-900 tracking-tight">Événements</h1>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="h-1 w-8 rounded-full" style={{ backgroundColor: '#2E7379' }}></div>
-                <p className="text-gray-600 font-medium">Découvrez nos événements passionnants</p>
-              </div>
-            </div>
-          </div>
-          <div className="text-4xl">📅</div>
-        </div>
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Événements</h1>
+        <p className="text-sm text-gray-600 mt-1">Découvrez les événements à venir</p>
       </div>
 
-      {/* Filters - Mono #2E7379 */}
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <div className="w-1 h-6 rounded" style={{ backgroundColor: '#2E7379' }}></div>
-          Filtrer par type
-        </h2>
-        <div className="flex flex-wrap gap-3 bg-white/40 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/40 shadow-sm">
+      {/* Filters */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
           {eventTypes.map((type) => (
             <button
               key={type}
               onClick={() => setFilter(type)}
-              className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 transform backdrop-blur-sm border ${
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
                 filter === type
-                  ? 'text-white shadow-lg scale-105'
-                  : 'bg-white/60 text-gray-700 hover:bg-white/80 border-2 border-gray-200/40 hover:border-gray-400/60'
+                  ? 'text-white shadow-md'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
               }`}
-              style={filter === type ? { backgroundColor: '#2E7379', borderColor: '#2E7379' } : {}}
+              style={filter === type ? { backgroundColor: '#2E7379' } : {}}
             >
-              {type === 'all' ? '🎯 Tous' : type}
+              {type === 'all' ? 'Tous' : type}
             </button>
           ))}
         </div>
@@ -131,7 +116,7 @@ export default function EventsPage() {
           <p className="text-gray-500 mt-2">Essayez de changer de filtre</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredEvents.map((event) => {
             const daysUntil = getDaysUntil(event.startDate);
             const isUpcoming = daysUntil >= 0;
@@ -139,125 +124,95 @@ export default function EventsPage() {
             return (
               <div
                 key={event.id}
-                className="group relative bg-white/40 backdrop-blur-xl rounded-3xl overflow-hidden flex flex-col h-full shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200/40"
+                className="group relative bg-white rounded-2xl overflow-hidden flex flex-col shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200"
               >
                 {/* Image Container */}
-                <div className="relative h-48 overflow-hidden bg-gray-100">
+                <div className="relative h-48 overflow-hidden bg-gray-200">
+                  {/* Image */}
+                  {event.imageUrls && event.imageUrls.length > 0 ? (
+                    <img
+                      src={event.imageUrls[0]}
+                      alt={event.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : event.posterUrl ? (
+                    <img
+                      src={event.posterUrl}
+                      alt={event.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-5xl">📅</span>
+                    </div>
+                  )}
+
                   {/* Type Badge */}
-                  <div className="absolute top-4 left-4 px-4 py-2 rounded-full text-xs font-bold border bg-white/80 backdrop-blur-sm text-gray-700 border-gray-200/40">
+                  <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 text-gray-700 border border-gray-200">
                     {event.type}
                   </div>
 
                   {/* Days Countdown */}
                   {isUpcoming && (
-                    <div className="absolute top-4 right-4 text-white px-4 py-2 rounded-xl font-bold shadow-lg flex items-center gap-2 backdrop-blur-sm border border-opacity-20" style={{ backgroundColor: '#2E7379' }}>
-                      <Clock size={16} />
-                      <span className="text-sm">{daysUntil === 0 ? 'Aujourd\'hui' : `${daysUntil}j`}</span>
+                    <div className="absolute top-3 right-3 text-white px-3 py-1.5 rounded-lg font-bold shadow-lg flex items-center gap-1.5 text-xs" style={{ backgroundColor: '#2E7379' }}>
+                      <Clock size={14} />
+                      <span>{daysUntil === 0 ? 'Auj.' : `${daysUntil}j`}</span>
                     </div>
                   )}
-
-                  {/* Bottom gradient fade */}
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent"></div>
                 </div>
 
                 {/* Card Content */}
-                <div className="p-6 flex flex-col flex-grow">
+                <div className="p-4 flex flex-col flex-grow">
                   {/* Title */}
-                  <h3 className="font-bold text-lg text-gray-900 mb-3 line-clamp-2">
+                  <h3 className="font-bold text-base text-gray-900 mb-3 line-clamp-2 h-14">
                     {event.name}
                   </h3>
 
-                  {/* Description */}
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
-                      {truncateDescription(
-                        event.description,
-                        expandedDescriptions[event.id],
-                        event.id,
-                        80
-                      )}
-                    </p>
-                    {event.description && event.description.length > 80 && (
-                      <button
-                        onClick={() => toggleDescription(event.id)}
-                        className="mt-2 font-semibold text-xs flex items-center gap-1 transition uppercase tracking-wide"
-                        style={{ color: '#2E7379' }}
-                      >
-                        {expandedDescriptions[event.id] ? (
-                          <>
-                            <ChevronUp size={14} /> Voir moins
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown size={14} /> Voir plus
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Event Details */}
-                  <div className="space-y-3 mb-6 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/40">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg border border-opacity-20 text-white" style={{ backgroundColor: '#2E7379' }}>
-                        <Calendar size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">Date</p>
-                        <p className="text-sm font-bold text-gray-800 truncate">{new Date(event.startDate).toLocaleDateString('fr-FR', { 
-                          weekday: 'short', 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}</p>
-                      </div>
+                  {/* Date and Location */}
+                  <div className="space-y-2 mb-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={14} style={{ color: '#2E7379' }} className="flex-shrink-0" />
+                      <span className="truncate">{new Date(event.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg border border-opacity-20 text-white" style={{ backgroundColor: '#2E7379' }}>
-                        <MapPin size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">Lieu</p>
-                        <p className="text-sm font-bold text-gray-800 truncate">{event.location}</p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} style={{ color: '#2E7379' }} className="flex-shrink-0" />
+                      <span className="truncate">{event.location}</span>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg border border-opacity-20 text-white" style={{ backgroundColor: '#2E7379' }}>
-                        <Users size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">Participants</p>
-                        <p className="text-sm font-bold text-gray-800">{event.registeredCount || 0}</p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Users size={14} style={{ color: '#2E7379' }} className="flex-shrink-0" />
+                      <span>{event.registeredCount || 0} inscrit{event.registeredCount !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 mt-auto pt-2">
+                  {/* Action Button */}
+                  <div className="flex gap-2 mt-auto pt-3">
                     <button
                       onClick={() => navigate(`/events/${event.id}`)}
-                      className="flex-1 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-bold shadow-md active:scale-95 flex items-center justify-center gap-2 backdrop-blur-sm border border-opacity-20"
+                      className="flex-1 text-white py-2.5 rounded-lg hover:shadow-lg transition-all duration-300 font-semibold text-sm active:scale-95 shadow-sm"
                       style={{ backgroundColor: '#2E7379' }}
                     >
                       Détails
-                      <ArrowRight size={16} />
                     </button>
                     {!event.isUserRegistered && (
                       <button
                         onClick={() => handleRegisterClick(event)}
-                        className="flex-1 bg-white/80 backdrop-blur-sm text-gray-800 py-3 rounded-xl hover:bg-white hover:shadow-lg transition-all duration-300 font-bold shadow-sm active:scale-95 border border-gray-300/40"
+                        className="flex-1 bg-gray-100 text-gray-800 py-2.5 rounded-lg hover:bg-gray-200 transition-all duration-300 font-semibold text-sm active:scale-95 border border-gray-300"
                       >
-                        {event.form ? '📋' : '✓'} {event.form ? 'Formulaire' : 'S\'inscrire'}
+                        S'inscrire
                       </button>
                     )}
                     {event.isUserRegistered && (
                       <button
                         disabled
-                        className="flex-1 bg-gray-100/60 text-gray-400 py-3 rounded-xl cursor-not-allowed font-bold opacity-60 backdrop-blur-sm border border-gray-200/40"
+                        className="flex-1 bg-gray-50 text-gray-400 py-2.5 rounded-lg cursor-not-allowed font-semibold text-sm border border-gray-200"
                       >
-                        ✓ Inscrit
+                        Inscrit ✓
                       </button>
                     )}
                   </div>

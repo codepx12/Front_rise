@@ -159,7 +159,7 @@ export default function AdminFormsPage() {
                     className="group bg-white/20 backdrop-blur-3xl rounded-2xl md:rounded-3xl overflow-hidden border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-white/25"
                   >
                     {/* Header avec gradient et icône */}
-                    <div className="relative bg-gradient-to-r from-teal-600/30 to-teal-500/20 backdrop-blur-lg border-b border-white/20 px-4 md:px-6 py-4 md:py-5">
+                    <div className="relative bg-gradient-to-r from-gray-/30 to-gray-/20 backdrop-blur-lg border-b border-white/20 px-4 md:px-6 py-4 md:py-5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
                           <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg border border-white/30 flex-shrink-0">

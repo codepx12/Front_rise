@@ -34,6 +34,19 @@ export default function DashboardPage() {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState('');
 
+  // Charger les réactions depuis le localStorage au montage
+  useEffect(() => {
+    const savedReactions = localStorage.getItem('userReactions');
+    if (savedReactions) {
+      try {
+        setUserReactions(JSON.parse(savedReactions));
+        console.log('✅ Réactions chargées du localStorage:', JSON.parse(savedReactions));
+      } catch (e) {
+        console.error('Erreur lors du chargement des réactions:', e);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -50,6 +63,23 @@ export default function DashboardPage() {
       setLoadingPosts(true);
       const response = await apiClient.get('/posts');
       setPosts(response.data || []);
+      
+      // Récupérer les réactions de l'utilisateur depuis le serveur
+      try {
+        const reactionsResponse = await apiClient.get('/posts/user-reactions');
+        const serverReactions = {};
+        if (reactionsResponse.data && Array.isArray(reactionsResponse.data)) {
+          reactionsResponse.data.forEach(reaction => {
+            serverReactions[reaction.postId] = true;
+          });
+        }
+        setUserReactions(serverReactions);
+        localStorage.setItem('userReactions', JSON.stringify(serverReactions));
+        console.log('✅ Réactions chargées du serveur:', serverReactions);
+      } catch (err) {
+        console.warn('Impossible de charger les réactions du serveur, utilisation du localStorage');
+        // En cas d'erreur, utiliser le localStorage (déjà chargé)
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des posts:', error);
       setPosts([]);
@@ -60,13 +90,49 @@ export default function DashboardPage() {
 
   const handleLikePost = async (postId) => {
     try {
-      await apiClient.post('/posts/reaction', { 
+      // Mettre à jour l'état local immédiatement pour une réaction rapide (optimistic update)
+      const newReactions = {
+        ...userReactions,
+        [postId]: !userReactions[postId]
+      };
+      setUserReactions(newReactions);
+      
+      // Sauvegarder dans le localStorage
+      localStorage.setItem('userReactions', JSON.stringify(newReactions));
+      console.log('💾 Réactions sauvegardées dans localStorage:', newReactions);
+
+      // Envoyer la requête au serveur
+      const response = await apiClient.post('/posts/reaction', { 
         postId: postId, 
         emojiType: 'like',
         commentId: null
       });
+
+      // Mettre à jour uniquement le post liké avec les données du serveur
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId 
+            ? { 
+                ...post, 
+                reactionCount: response.data.reactionCount || post.reactionCount,
+              }
+            : post
+        )
+      );
+
+      // IMPORTANT: Ne pas réinitialiser userReactions depuis le serveur
+      // On garde l'optimistic update local (newReactions)
+      // La réponse du serveur ne doit mettre à jour que reactionCount
+      console.log('✅ Like mis à jour (optimistic):', newReactions);
     } catch (error) {
       console.error('Erreur lors du like:', error);
+      // Annuler le changement local en cas d'erreur
+      const canceledReactions = {
+        ...userReactions,
+        [postId]: !userReactions[postId]
+      };
+      setUserReactions(canceledReactions);
+      localStorage.setItem('userReactions', JSON.stringify(canceledReactions));
     }
   };
 

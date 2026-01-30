@@ -215,7 +215,7 @@ export default function AdminCreateEventPage() {
         posterUrl: formData.posterUrl,
         documentUrl: formData.documentUrls.length > 0 ? formData.documentUrls[0] : '',
         rules: formData.rules,
-        formId: formData.formId,
+        formId: formData.formId ? formData.formId : null,
         requireFormSubmission: formData.requireFormSubmission,
       };
 

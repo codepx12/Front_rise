@@ -408,7 +408,8 @@ export default function MainLayout({ children, showSidebars = true }) {
 
         {/* Main Content - Adjust margin only on lg screens */}
         <main 
-          className="flex-1 w-full px-4 py-8 lg:px-2 lg:py-2 lg:ml-13 transition-all duration-300 overflow-x-hidden"
+          className="flex-1 w-full px-4 py-8 lg:px-2 lg:py-2 lg:ml-20 overflow-y-auto"
+          style={{ height: 'calc(100vh - 80px)' }}
         >
           {children}
         </main>

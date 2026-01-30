@@ -107,7 +107,7 @@ export default function AdminLayout({ children, pageTitle }) {
         {/* Logo Section */}
         <div className="p-3 md:p-4 flex items-center justify-between border-b border-gray-200/40 flex-shrink-0">
           <h1 className="font-bold text-lg md:text-xl text-[#2E7379] whitespace-nowrap">
-            🚀 RISE
+            RISE
           </h1>
           <button
             onClick={() => setSidebarOpen(false)}
