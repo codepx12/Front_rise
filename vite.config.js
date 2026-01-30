@@ -10,4 +10,26 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
   },
+  build: {
+    // Configuration optimale pour Netlify
+    target: 'esnext',
+    minify: 'terser',
+    cssCodeSplit: true,
+    sourcemap: false,
+    outDir: 'dist',
+    assetsDir: 'assets',
+    // S'assurer que les modules sont correctement generés
+    rollupOptions: {
+      output: {
+        // Configuration pour éviter les problèmes MIME
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
+      },
+    },
+  },
+  // Optimisation pour Netlify
+  define: {
+    'process.env': JSON.stringify(process.env),
+  },
 })
