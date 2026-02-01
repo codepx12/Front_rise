@@ -471,7 +471,7 @@ export default function MessagesPage() {
 
           {/* Search Results or Conversations List */}
           <div className="flex-1 overflow-y-auto">
-            {searchResults.length > 0 && showNewMessage ? (
+            {searchResults.length > 0 && searchText.trim().length > 0 ? (
               <>
                 <p className="text-xs font-semibold text-gray-500 px-4 py-3">RÉSULTATS DE RECHERCHE</p>
                 {searchResults.map((student) => (
@@ -492,7 +492,7 @@ export default function MessagesPage() {
                   </button>
                 ))}
               </>
-            ) : !showNewMessage ? (
+            ) : (
               <>
                 {filteredConversations.length > 0 ? (
                   filteredConversations.map((conv) => (
@@ -538,7 +538,7 @@ export default function MessagesPage() {
                   </div>
                 )}
               </>
-            ) : null}
+            )}
           </div>
         </div>
 
