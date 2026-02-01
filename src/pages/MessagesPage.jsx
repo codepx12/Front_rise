@@ -18,6 +18,8 @@ import {
   Frown,
   Zap,
   MessageCircle,
+  Circle,
+  ChevronDown,
 } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { messageService } from '../services/messageService';
@@ -429,419 +431,451 @@ export default function MessagesPage() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50 -mx-4 -my-8">
-        <div className="flex h-screen bg-gray-50">
-          {/* Sidebar - Liste des conversations */}
-          <div className={`${selectedConversation ? 'hidden' : 'w-full'} lg:flex lg:w-96 bg-white border-r border-gray-200 flex-col`}>
-            {/* Header */}
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Messages</h2>
-              
-              {/* Search Bar */}
-              <div className="relative mb-4">
-                <Search size={18} className="absolute left-3 top-2.5 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Rechercher une conversation..."
-                  value={searchText}
-                  onChange={(e) => handleSearchStudents(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-[#2E7379] text-sm"
-                />
-              </div>
-
-              {/* New Message Button */}
-              <button
-                onClick={() => setShowNewMessage(!showNewMessage)}
-                className="w-full flex items-center justify-center gap-2 bg-[#2E7379] text-white py-2 rounded-lg hover:bg-[#F0F1F5] transition font-semibold"
-              >
-                <Plus size={18} />
-                Nouveau message
+      <div className="w-full h-[calc(100vh-100px)] bg-white flex flex-col lg:flex-row overflow-hidden">
+        {/* Sidebar - Conversations List */}
+        <div className={`${selectedConversation ? 'hidden' : 'flex'} lg:flex flex-col w-full lg:w-80 bg-white border-r border-gray-200 overflow-hidden`}>
+          {/* Sidebar Header */}
+          <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-black text-gray-900">Discussions</h1>
+              <button className="p-2 hover:bg-gray-100 rounded-full transition">
+                <MoreVertical size={20} className="text-gray-600" />
               </button>
-
-              {/* Search Results */}
-              {searchResults.length > 0 && showNewMessage && (
-                <div className="mt-3 bg-gray-50 rounded-lg border border-gray-300 max-h-64 overflow-y-auto">
-                  <p className="text-xs font-semibold text-gray-600 p-3 pb-0">Résultats de recherche</p>
-                  {searchResults.map((student) => (
-                    <button
-                      key={student.id}
-                      onClick={() => handleStartConversation(student)}
-                      className="w-full p-3 hover:bg-gray-100 flex items-center gap-3 border-t border-gray-200 transition"
-                    >
-                      <div className="w-10 h-10 bg-[#2E7379] rounded-full shrink-0 flex items-center justify-center text-white font-bold text-sm">
-                        {student.firstName?.charAt(0)}{student.lastName?.charAt(0)}
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className="font-semibold text-gray-900 text-sm">
-                          {student.firstName} {student.lastName}
-                        </p>
-                        <p className="text-xs text-gray-500">{student.email}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
-
-            {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto">
-              {filteredConversations.length > 0 ? (
-                filteredConversations.map((conv) => (
-                  <button
-                    key={conv.id}
-                    onClick={() => setSelectedConversation(conv)}
-                    className={`w-full p-4 border-b border-gray-100 hover:bg-gray-50 transition flex items-center gap-3 ${
-                      selectedConversation?.id === conv.id ? 'bg-[#2E7379]/10 border-l-4 border-l-[#2E7379]' : ''
-                    }`}
-                  >
-                    <img
-                      src={getImageUrl(conv.senderProfileImageUrl) || '/profile_none.jpg'}
-                      alt={conv.sender}
-                      className="w-12 h-12 rounded-full object-cover shrink-0 cursor-pointer hover:opacity-80 transition"
-                      onError={(e) => {
-                        e.target.src = '/profile_none.jpg';
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (conv.senderId) {
-                          navigate(`/profile/${conv.senderId}`);
-                        }
-                      }}
-                      title="Voir le profil"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline gap-2">
-                        <p className={`font-semibold text-gray-900 truncate ${conv.unread > 0 ? 'font-bold' : ''}`}>
-                          {conv.sender}
-                        </p>
-                        <p className="text-xs text-gray-500 shrink-0">{formatTime(conv.time)}</p>
-                      </div>
-                      <p className="text-sm text-gray-600 truncate">{conv.lastMessage || 'Pas de message'}</p>
-                    </div>
-                    {conv.unread > 0 && (
-                      <span className="bg-[#2E7379] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center shrink-0">
-                        {conv.unread}
-                      </span>
-                    )}
-                  </button>
-                ))
-              ) : (
-                <div className="p-4 text-center text-gray-500">
-                  {searchText ? 'Aucune conversation trouvée' : 'Aucune conversation'}
-                </div>
-              )}
+            
+            {/* Search Bar */}
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Rechercher dans Messenger"
+                value={searchText}
+                onChange={(e) => handleSearchStudents(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[#255D5F]/30 text-sm text-gray-900 placeholder-gray-500"
+              />
             </div>
           </div>
 
-          {/* Chat Area */}
-          {selectedConversation && (
-            <div className="w-full lg:flex-1 flex flex-col bg-white">
-              {/* Chat Header */}
-              <div className="border-b border-gray-200 p-4 flex items-center justify-between bg-white sticky top-0 z-10">
-                <div className="flex items-center gap-3 flex-1">
+          {/* Tabs */}
+          <div className="flex gap-2 px-4 py-3 border-b border-gray-200 overflow-x-auto flex-shrink-0">
+            <button className="px-4 py-1.5 bg-[#255D5F] text-white text-sm font-semibold rounded-full whitespace-nowrap hover:opacity-90">
+              Tout
+            </button>
+            <button className="px-4 py-1.5 text-gray-600 text-sm font-semibold rounded-full hover:bg-gray-100 whitespace-nowrap">
+              Non lu
+            </button>
+            <button className="px-4 py-1.5 text-gray-600 text-sm font-semibold rounded-full hover:bg-gray-100 whitespace-nowrap">
+              Groupes
+            </button>
+          </div>
+
+          {/* Search Results or Conversations List */}
+          <div className="flex-1 overflow-y-auto">
+            {searchResults.length > 0 && showNewMessage ? (
+              <>
+                <p className="text-xs font-semibold text-gray-500 px-4 py-3">RÉSULTATS DE RECHERCHE</p>
+                {searchResults.map((student) => (
                   <button
-                    onClick={() => setSelectedConversation(null)}
-                    className="lg:hidden text-gray-600 hover:bg-gray-100 p-2 rounded-full transition"
+                    key={student.id}
+                    onClick={() => handleStartConversation(student)}
+                    className="w-full px-4 py-3 hover:bg-gray-50 transition flex items-center gap-3 border-b border-gray-100"
                   >
-                    <ArrowLeft size={24} />
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#255D5F] to-cyan-500 rounded-full shrink-0 flex items-center justify-center text-white font-bold text-sm">
+                      {student.firstName?.charAt(0)}{student.lastName?.charAt(0)}
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {student.firstName} {student.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{student.email}</p>
+                    </div>
                   </button>
+                ))}
+              </>
+            ) : !showNewMessage ? (
+              <>
+                {filteredConversations.length > 0 ? (
+                  filteredConversations.map((conv) => (
+                    <button
+                      key={conv.id}
+                      onClick={() => setSelectedConversation(conv)}
+                      className={`w-full px-4 py-3 hover:bg-gray-50 transition flex items-center gap-3 border-b border-gray-100 ${
+                        selectedConversation?.id === conv.id ? 'bg-gray-50' : ''
+                      }`}
+                    >
+                      <div className="relative shrink-0">
+                        <img
+                          src={getImageUrl(conv.senderProfileImageUrl) || '/profile_none.jpg'}
+                          alt={conv.sender}
+                          className="w-12 h-12 rounded-full object-cover"
+                          onError={(e) => {
+                            e.target.src = '/profile_none.jpg';
+                          }}
+                        />
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline gap-2 mb-1">
+                          <p className={`${conv.unread > 0 ? 'font-bold' : 'font-semibold'} text-gray-900 truncate text-sm`}>
+                            {conv.sender}
+                          </p>
+                          <p className="text-xs text-gray-500 shrink-0">{formatTime(conv.time)}</p>
+                        </div>
+                        <p className={`text-xs ${conv.unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'} truncate`}>
+                          {conv.lastMessage || 'Pas de message'}
+                        </p>
+                      </div>
+                      {conv.unread > 0 && (
+                        <div className="w-5 h-5 bg-[#255D5F] rounded-full shrink-0 flex items-center justify-center">
+                          <span className="text-xs text-white font-bold">{conv.unread}</span>
+                        </div>
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500 p-4">
+                    <p className="text-sm">{searchText ? 'Aucune conversation trouvée' : 'Aucune conversation'}</p>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Chat Area */}
+        {selectedConversation && (
+          <div className="flex-1 flex flex-col bg-white lg:border-l border-gray-200 overflow-hidden">
+            {/* Chat Header */}
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-white flex-shrink-0">
+              <div className="flex items-center gap-3 flex-1">
+                <button
+                  onClick={() => setSelectedConversation(null)}
+                  className="lg:hidden text-gray-600 hover:bg-gray-100 p-2 rounded-full transition"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <div className="relative">
                   <img
                     src={getImageUrl(selectedConversation.senderProfileImageUrl) || '/profile_none.jpg'}
                     alt={selectedConversation.sender}
-                    className="w-12 h-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
-                    onClick={() => {
-                      if (selectedConversation.senderId) {
-                        navigate(`/profile/${selectedConversation.senderId}`);
-                      }
-                    }}
-                    title="Voir le profil"
+                    className="w-10 h-10 rounded-full object-cover"
                     onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextElementSibling?.classList.remove('hidden');
+                      e.target.src = '/profile_none.jpg';
                     }}
                   />
-                  <div className="hidden w-12 h-12 bg-gradient-to-br from-[#2E7379] to-[#F0F1F5] rounded-full flex items-center justify-center text-white font-bold">
-                    {selectedConversation.sender?.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">{selectedConversation.sender}</h3>
-                    <p className="text-sm text-gray-500">
-                      {usersTyping.length > 0 ? `${usersTyping.join(', ')} en train d'écrire...` : 'Actif maintenant'}
-                    </p>
-                  </div>
+                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></div>
                 </div>
-
-                {/* Call Buttons */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleStartCall('audio')}
-                    disabled={onCall}
-                    className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600 hover:text-[#2E7379] disabled:opacity-50"
-                    title="Appel audio"
-                  >
-                    <Phone size={20} />
-                  </button>
-                  <button
-                    onClick={() => handleStartCall('video')}
-                    disabled={onCall}
-                    className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600 hover:text-[#2E7379] disabled:opacity-50"
-                    title="Appel vidéo"
-                  >
-                    <Video size={20} />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600">
-                    <MoreVertical size={20} />
-                  </button>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">{selectedConversation.sender}</h3>
+                  <p className="text-xs text-gray-500">
+                    {usersTyping.length > 0 ? `${usersTyping.join(', ')} en train d'écrire...` : 'En ligne'}
+                  </p>
                 </div>
               </div>
 
-              {/* Messages */}
-              <div 
-                className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
-                onClick={() => {
-                  // Fermer les réactions quand on clique n'importe où
-                  if (showReactionMenu) {
-                    setShowReactionMenu(null);
-                  }
-                }}
-              >
-                {messagesLoading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center text-gray-500">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#2E7379] mb-3"></div>
-                      <p>Chargement des messages...</p>
-                    </div>
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-gray-500">
-                    <p>Aucun message pour le moment</p>
-                  </div>
-                ) : (
-                  messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'} gap-2`}
-                    >
-                      {!msg.isOwn && (
-                        <img
-                          src={getImageUrl(msg.senderProfileImageUrl) || '/profile_none.jpg'}
-                          alt={msg.senderName}
-                          className="w-8 h-8 rounded-full object-cover shrink-0 mt-1 cursor-pointer hover:opacity-80 transition"
-                          onError={(e) => {
-                            e.target.src = '/profile_none.jpg';
-                          }}
-                          onClick={() => {
-                            if (msg.senderId) {
-                              navigate(`/profile/${msg.senderId}`);
-                            }
-                          }}
-                          title="Voir le profil"
-                        />
-                      )}
-                      <div className="relative w-full max-w-xs lg:max-w-md">
-                        {/* Swipe Actions Background (appears on swipe) */}
-                        <div
-                          className={`absolute inset-0 rounded-lg flex items-center ${
-                            msg.isOwn ? 'justify-end pr-2' : 'justify-start pl-2'
-                          } bg-[#2E7379] transition-opacity duration-300 ${
-                            swipedMessageId === msg.id ? 'opacity-100' : 'opacity-0'
-                          }`}
-                        >
-                          {swipedMessageId === msg.id && (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => {
-                                  setReplyingTo(msg);
-                                  setSwipedMessageId(null);
-                                }}
-                                className="p-2 bg-[#2E7379] rounded-full text-white hover:bg-[#F0F1F5] transition"
-                                title="Répondre"
-                              >
-                                <Reply size={18} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setShowReactionMenu(msg.id);
-                                  setSwipedMessageId(null);
-                                }}
-                                className="p-2 bg-[#2E7379] rounded-full text-white hover:bg-[#F0F1F5] transition"
-                                title="Réactions"
-                              >
-                                😊
-                              </button>
-                            </div>
-                          )}
-                        </div>
+              {/* Header Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleStartCall('audio')}
+                  disabled={onCall}
+                  className="p-2 hover:bg-gray-100 rounded-full transition text-[#255D5F] disabled:opacity-50"
+                  title="Appel audio"
+                >
+                  <Phone size={18} />
+                </button>
+                <button
+                  onClick={() => handleStartCall('video')}
+                  disabled={onCall}
+                  className="p-2 hover:bg-gray-100 rounded-full transition text-[#255D5F] disabled:opacity-50"
+                  title="Appel vidéo"
+                >
+                  <Video size={18} />
+                </button>
+                <button className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600">
+                  <MoreVertical size={18} />
+                </button>
+              </div>
+            </div>
 
-                        {/* Message Content */}
-                        <div
-                          className={`group relative transition-transform duration-300 ${
-                            swipedMessageId === msg.id ? (msg.isOwn ? '-translate-x-20' : 'translate-x-20') : ''
-                          }`}
-                          onTouchStart={(e) => handleTouchStart(e, msg.id)}
-                          onTouchMove={(e) => handleTouchMove(e, msg.id)}
-                          onTouchEnd={handleTouchEnd}
-                        >
-                          <div
-                            className={`px-4 py-2 rounded-lg ${
-                              msg.isOwn
-                                ? 'bg-[#2E7379] text-white rounded-br-none'
-                                : 'bg-white text-gray-900 border border-gray-200 rounded-bl-none'
-                            }`}
-                          >
-                            {/* Reply to */}
-                            {msg.replyTo && (
-                              <div className={`text-xs mb-2 py-1 px-2 rounded ${
-                                msg.isOwn ? 'bg-[#F0F1F5] bg-opacity-50' : 'bg-gray-100'
-                              }`}>
-                                <p className={msg.isOwn ? 'text-[#2E7379]' : 'text-gray-600'}>
-                                  Réponse à {msg.replyTo.sender}
-                                </p>
-                                <p className={`text-xs italic truncate ${msg.isOwn ? 'text-[#2E7379]' : 'text-gray-500'}`}>
-                                  {msg.replyTo.content}
-                                </p>
-                              </div>
-                            )}
-                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                            <p className={`text-xs mt-1 ${msg.isOwn ? 'text-[#2E7379]' : 'text-gray-500'}`}>
-                              {formatTime(msg.sentAt)}
+            {/* Messages Area */}
+            <div 
+              className="flex-1 overflow-y-auto p-4 space-y-3 bg-white"
+              onClick={() => {
+                if (showReactionMenu) {
+                  setShowReactionMenu(null);
+                }
+              }}
+            >
+              {messagesLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="inline-block animate-spin">
+                      <Circle size={24} className="text-[#255D5F] animate-spin" />
+                    </div>
+                    <p className="text-gray-500 text-sm mt-3">Chargement...</p>
+                  </div>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                      <MessageCircle size={32} className="text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 text-sm">Aucun message pour le moment</p>
+                  </div>
+                </div>
+              ) : (
+                messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'} gap-2 group`}
+                  >
+                    {!msg.isOwn && (
+                      <img
+                        src={getImageUrl(msg.senderProfileImageUrl) || '/profile_none.jpg'}
+                        alt={msg.senderName}
+                        className="w-6 h-6 rounded-full object-cover shrink-0 mt-1 cursor-pointer hover:opacity-80 transition"
+                        onError={(e) => {
+                          e.target.src = '/profile_none.jpg';
+                        }}
+                        onClick={() => {
+                          if (msg.senderId) {
+                            navigate(`/profile/${msg.senderId}`);
+                          }
+                        }}
+                        title="Voir le profil"
+                      />
+                    )}
+                    <div className="relative max-w-xs lg:max-w-md">
+                      {/* Message Bubble */}
+                      <div
+                        className={`px-4 py-2.5 rounded-2xl ${
+                          msg.isOwn
+                            ? 'bg-[#255D5F] text-white rounded-br-none'
+                            : 'bg-gray-100 text-gray-900 rounded-bl-none'
+                        }`}
+                      >
+                        {/* Reply to */}
+                        {msg.replyTo && (
+                          <div className={`text-xs mb-2 py-1.5 px-2 rounded-lg border-l-2 ${
+                            msg.isOwn 
+                              ? 'bg-white/20 border-l-white' 
+                              : 'bg-gray-200/50 border-l-gray-400'
+                          }`}>
+                            <p className={msg.isOwn ? 'text-white/90' : 'text-gray-700'}>
+                              Réponse à {msg.replyTo.sender}
+                            </p>
+                            <p className={`text-xs italic truncate ${msg.isOwn ? 'text-white/70' : 'text-gray-600'}`}>
+                              {msg.replyTo.content}
                             </p>
                           </div>
-
-                          {/* Reactions */}
-                          {msg.reactions && msg.reactions.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {msg.reactions.map((reaction, idx) => (
-                                <span
-                                  key={idx}
-                                  className="bg-white border border-gray-200 rounded-full px-1.5 py-0.5 text-xs"
-                                  title={reaction.user}
-                                >
-                                  {reaction.emoji}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Desktop Message Actions (hover) */}
-                          <div className="hidden lg:flex group-hover:flex gap-1 mt-1">
-                            <button
-                              onClick={() => setReplyingTo(msg)}
-                              className={`p-2 rounded-full text-xs transition ${
-                                msg.isOwn
-                                  ? 'bg-[#2E7379] hover:bg-[#F0F1F5] text-white'
-                                  : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'
-                              }`}
-                              title="Répondre"
-                            >
-                              <Reply size={16} />
-                            </button>
-                            <button
-                              onClick={() => setShowReactionMenu(showReactionMenu === msg.id ? null : msg.id)}
-                              className={`p-2 rounded-full text-xs transition ${
-                                msg.isOwn
-                                  ? 'bg-[#2E7379] hover:bg-[#F0F1F5] text-white'
-                                  : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-200'
-                              }`}
-                              title="Ajouter une réaction"
-                            >
-                              <Smile size={16} />
-                            </button>
-                          </div>
-
-                          {/* Emoji Picker */}
-                          {showReactionMenu === msg.id && (
-                            <div className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex gap-2 z-20">
-                              {EMOJI_REACTIONS.map((reaction) => {
-                                const Icon = reaction.icon;
-                                return (
-                                  <button
-                                    key={reaction.name}
-                                    onClick={() => handleAddReaction(msg.id, reaction.name)}
-                                    className="hover:scale-125 transition cursor-pointer p-2 hover:bg-gray-100 rounded-lg"
-                                    title={reaction.label}
-                                  >
-                                    <Icon size={18} className="text-gray-700" />
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
+                        )}
+                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                       </div>
-                      {msg.isOwn && (
-                        <img
-                          src={getImageUrl(msg.senderProfileImageUrl) || '/profile_none.jpg'}
-                          alt={msg.senderName}
-                          className="w-8 h-8 rounded-full object-cover shrink-0 mt-1"
-                          onError={(e) => {
-                            e.target.src = '/profile_none.jpg';
-                          }}
-                        />
+
+                      {/* Reactions */}
+                      {msg.reactions && msg.reactions.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1 ml-1">
+                          {msg.reactions.map((reaction, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-gray-100 border border-gray-200 rounded-full px-2 py-1 text-xs hover:bg-gray-200 transition cursor-pointer"
+                              title={reaction.user}
+                            >
+                              {reaction.emoji}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Message Time */}
+                      <p className={`text-xs mt-1 ${msg.isOwn ? 'text-right text-gray-400' : 'text-gray-500'}`}>
+                        {formatTime(msg.sentAt)}
+                      </p>
+
+                      {/* Message Actions (hover desktop) */}
+                      <div className="hidden lg:group-hover:flex gap-1 absolute -top-8 right-0 bg-white border border-gray-200 rounded-full p-1 shadow-lg z-10">
+                        <button
+                          onClick={() => setReplyingTo(msg)}
+                          className="p-1.5 hover:bg-gray-100 rounded-full transition text-gray-600"
+                          title="Répondre"
+                        >
+                          <Reply size={14} />
+                        </button>
+                        <button
+                          onClick={() => setShowReactionMenu(showReactionMenu === msg.id ? null : msg.id)}
+                          className="p-1.5 hover:bg-gray-100 rounded-full transition text-gray-600"
+                          title="Ajouter une réaction"
+                        >
+                          <Smile size={14} />
+                        </button>
+                      </div>
+
+                      {/* Emoji Picker */}
+                      {showReactionMenu === msg.id && (
+                        <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-2xl shadow-xl p-2 flex gap-1.5 z-20">
+                          {EMOJI_REACTIONS.map((reaction) => {
+                            const Icon = reaction.icon;
+                            return (
+                              <button
+                                key={reaction.name}
+                                onClick={() => handleAddReaction(msg.id, reaction.name)}
+                                className="hover:scale-125 transition p-1.5 hover:bg-gray-100 rounded-lg"
+                                title={reaction.label}
+                              >
+                                <Icon size={16} className="text-gray-700" />
+                              </button>
+                            );
+                          })}
+                        </div>
                       )}
                     </div>
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Reply Preview */}
-              {replyingTo && (
-                <div className="border-t border-gray-200 px-4 py-2 bg-[#2E7379]/10 flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-[#2E7379]">Répondre à {replyingTo.sender}</p>
-                    <p className="text-sm text-gray-700 truncate">{replyingTo.content}</p>
+                    {msg.isOwn && (
+                      <img
+                        src={getImageUrl(msg.senderProfileImageUrl) || '/profile_none.jpg'}
+                        alt={msg.senderName}
+                        className="w-6 h-6 rounded-full object-cover shrink-0 mt-1"
+                        onError={(e) => {
+                          e.target.src = '/profile_none.jpg';
+                        }}
+                      />
+                    )}
                   </div>
-                  <button
-                    onClick={() => setReplyingTo(null)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
+                ))
               )}
+              <div ref={messagesEndRef} />
+            </div>
 
-              {/* Input Area */}
-              <div className="border-t border-gray-200 p-4 bg-white">
-                <div className="flex gap-2">
-                  <button className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600">
-                    <Paperclip size={20} />
-                  </button>
-                  <input
-                    type="text"
-                    value={messageText}
-                    onChange={(e) => handleTyping(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Aa"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-[#2E7379] text-sm"
-                  />
-                  <button
-                    onClick={() => setShowEmojiPicker(showEmojiPicker ? null : 'input')}
-                    className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600"
-                  >
-                    <Smile size={20} />
-                  </button>
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!messageText.trim() || loading}
-                    className="bg-[#2E7379] text-white p-2 rounded-full hover:bg-[#F0F1F5] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send size={20} />
-                  </button>
+            {/* Reply Preview */}
+            {replyingTo && (
+              <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 flex items-center gap-3 flex-shrink-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#255D5F]">Répondre à {replyingTo.sender}</p>
+                  <p className="text-sm text-gray-700 truncate">{replyingTo.content}</p>
                 </div>
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* Input Area - Always at bottom */}
+            <div className="border-t border-gray-200 p-3 bg-white flex-shrink-0">
+              <div className="flex gap-2 items-end">
+                <button className="p-2 hover:bg-gray-100 rounded-full transition text-[#255D5F] flex-shrink-0">
+                  <Plus size={20} />
+                </button>
+                <input
+                  type="text"
+                  value={messageText}
+                  onChange={(e) => handleTyping(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Aa"
+                  className="flex-1 px-4 py-2.5 bg-gray-100 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[#255D5F]/30 text-sm text-gray-900 placeholder-gray-600"
+                />
+                <button
+                  onClick={() => setShowEmojiPicker(showEmojiPicker ? null : 'input')}
+                  className="p-2 hover:bg-gray-100 rounded-full transition text-[#255D5F] flex-shrink-0"
+                >
+                  <Smile size={20} />
+                </button>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!messageText.trim() || loading}
+                  className="p-2 hover:bg-gray-100 rounded-full transition text-[#255D5F] disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                >
+                  <Send size={20} />
+                </button>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Empty State */}
-          {!selectedConversation && !showNewMessage && (
-            <div className="hidden lg:flex flex-1 flex-col items-center justify-center bg-gray-50 text-gray-500">
-              <Send size={48} className="mb-4 opacity-50" />
-              <p className="text-lg font-semibold mb-2">Sélectionnez une conversation</p>
-              <p className="text-sm">Choisissez une conversation pour commencer à discuter</p>
+        {/* Right Sidebar - User Info (visible when chat is selected) */}
+        {selectedConversation && (
+          <div className="hidden xl:flex flex-col w-80 bg-white border-l border-gray-200 overflow-hidden">
+            {/* User Profile Section */}
+            <div className="p-4 border-b border-gray-200 text-center">
+              <div className="relative inline-block mb-3">
+                <img
+                  src={getImageUrl(selectedConversation.senderProfileImageUrl) || '/profile_none.jpg'}
+                  alt={selectedConversation.sender}
+                  className="w-24 h-24 rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.src = '/profile_none.jpg';
+                  }}
+                />
+                <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg">{selectedConversation.sender}</h3>
+              <p className="text-xs text-gray-500 mt-1">En ligne</p>
             </div>
-          )}
-        </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 px-4 py-3 border-b border-gray-200 justify-center flex-shrink-0">
+              <button
+                onClick={() => handleStartCall('audio')}
+                disabled={onCall}
+                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-full transition text-[#255D5F] disabled:opacity-50"
+                title="Appel audio"
+              >
+                <Phone size={20} />
+              </button>
+              <button
+                onClick={() => handleStartCall('video')}
+                disabled={onCall}
+                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-full transition text-[#255D5F] disabled:opacity-50"
+                title="Appel vidéo"
+              >
+                <Video size={20} />
+              </button>
+              <button className="p-3 bg-gray-100 hover:bg-gray-200 rounded-full transition text-[#255D5F]">
+                <Search size={20} />
+              </button>
+            </div>
+
+            {/* Info Sections */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Personaliser la discussion */}
+              <div className="border-b border-gray-200">
+                <button className="w-full px-4 py-3 hover:bg-gray-50 transition flex items-center justify-between text-gray-900 text-sm font-semibold">
+                  <span>Personnaliser la discussion</span>
+                  <ChevronDown size={16} className="text-gray-400" />
+                </button>
+              </div>
+
+              {/* Fichiers et contenus multimédias */}
+              <div className="border-b border-gray-200">
+                <button className="w-full px-4 py-3 hover:bg-gray-50 transition flex items-center justify-between text-gray-900 text-sm font-semibold">
+                  <span>Fichiers et contenus multimédias</span>
+                  <ChevronDown size={16} className="text-gray-400" />
+                </button>
+              </div>
+
+              {/* Confidentialité et assistance */}
+              <div>
+                <button className="w-full px-4 py-3 hover:bg-gray-50 transition flex items-center justify-between text-gray-900 text-sm font-semibold">
+                  <span>Confidentialité et assistance</span>
+                  <ChevronDown size={16} className="text-gray-400" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!selectedConversation && !showNewMessage && (
+          <div className="hidden lg:flex flex-1 flex-col items-center justify-center bg-white">
+            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+              <MessageCircle size={40} className="text-gray-400" />
+            </div>
+            <p className="text-lg font-semibold text-gray-900 mb-2">Sélectionnez une conversation</p>
+            <p className="text-sm text-gray-600">Choisissez une conversation pour commencer à discuter</p>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

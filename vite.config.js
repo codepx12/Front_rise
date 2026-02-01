@@ -13,7 +13,7 @@ export default defineConfig({
   build: {
     // Configuration optimale pour Netlify
     target: 'esnext',
-    minify: 'terser',
+    minify: 'esbuild', // ✅ Utiliser esbuild au lieu de terser
     cssCodeSplit: true,
     sourcemap: false,
     outDir: 'dist',
