@@ -17,7 +17,6 @@ export default function RegisterPage() {
     role: 'Student',
   });
   const [validationError, setValidationError] = useState('');
-  const [focusedField, setFocusedField] = useState(null);
 
   const classes = ['L1', 'L2', 'L3', 'M1', 'M2'];
   const filieres = ['Génie Logiciel', 'Intelligence Artificielle', 'Administration Réseau et Système'];
@@ -62,85 +61,134 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white py-8 sm:py-12">
+    <div 
+      className="fixed inset-0 flex items-center justify-center overflow-hidden"
+      style={{
+        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(/register&login.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap');
         
-        body {
+        * {
           font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Helvetica Neue', sans-serif;
-          background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
         }
 
-        .ios-input {
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-          border: 1px solid #e5e5e7;
-          background-color: #f5f5f7;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          font-size: 16px;
+        .auth-form {
+          width: 90%;
+          max-width: 450px;
         }
 
-        .ios-input:focus {
+        .auth-input {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 
+            inset 0 1px 2px rgba(255, 255, 255, 0.3),
+            inset -1px -1px 2px rgba(0, 0, 0, 0.1),
+            0 8px 32px 0 rgba(31, 38, 135, 0.15);
+          color: white;
+          transition: all 0.3s ease;
+          font-size: 14px;
+          position: relative;
+        }
+
+        .auth-input::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .auth-input:focus {
           outline: none;
-          background-color: #ffffff;
-          border-color: #0071e3;
-          box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 100%);
+          border-color: rgba(255, 255, 255, 0.5);
+          box-shadow: 
+            inset 0 1px 3px rgba(255, 255, 255, 0.4),
+            inset -1px -1px 3px rgba(0, 0, 0, 0.15),
+            0 8px 32px 0 rgba(0, 113, 227, 0.25),
+            0 0 20px rgba(0, 113, 227, 0.1);
         }
 
-        .ios-select {
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-          border: 1px solid #e5e5e7;
-          background-color: #f5f5f7;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          font-size: 16px;
+        .auth-select {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 
+            inset 0 1px 2px rgba(255, 255, 255, 0.3),
+            inset -1px -1px 2px rgba(0, 0, 0, 0.1),
+            0 8px 32px 0 rgba(31, 38, 135, 0.15);
+          color: white;
+          transition: all 0.3s ease;
+          font-size: 14px;
           cursor: pointer;
+          position: relative;
         }
 
-        .ios-select:focus {
+        .auth-select:focus {
           outline: none;
-          background-color: #ffffff;
-          border-color: #0071e3;
-          box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 100%);
+          border-color: rgba(255, 255, 255, 0.5);
+          box-shadow: 
+            inset 0 1px 3px rgba(255, 255, 255, 0.4),
+            inset -1px -1px 3px rgba(0, 0, 0, 0.15),
+            0 8px 32px 0 rgba(0, 113, 227, 0.25),
+            0 0 20px rgba(0, 113, 227, 0.1);
         }
 
-        .ios-button {
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+        .auth-select option {
+          background-color: #1a1a1a;
+          color: white;
+        }
+
+        .auth-label {
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 12px;
           font-weight: 600;
-          letter-spacing: -0.5px;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
         }
 
-        .ios-button:hover:not(:disabled) {
+        .auth-button {
+          background: linear-gradient(135deg, #0071e3 0%, #0056b3 100%);
+          color: white;
+          font-weight: 600;
+          letter-spacing: -0.3px;
+          transition: all 0.3s ease;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 
+            0 8px 32px 0 rgba(0, 113, 227, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .auth-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(0, 113, 227, 0.3);
+          box-shadow: 
+            0 12px 40px 0 rgba(0, 113, 227, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
-        .ios-button:active:not(:disabled) {
+        .auth-button:active:not(:disabled) {
           transform: translateY(0);
-          box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
         }
 
-        .ios-button:disabled {
+        .auth-button:disabled {
           opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .error-alert {
-          background-color: #fff5f5;
-          border: 1px solid #fccccb;
+          background: linear-gradient(135deg, rgba(255, 82, 82, 0.2) 0%, rgba(255, 82, 82, 0.1) 100%);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 82, 82, 0.4);
+          color: #ff9999;
+          font-size: 12px;
           border-radius: 12px;
-          padding: 12px 16px;
-          font-size: 14px;
-          color: #d70015;
-          animation: slideDown 0.3s ease-out;
-        }
-
-        .info-text {
-          background-color: #f0f9ff;
-          border-left: 3px solid #0071e3;
-          border-radius: 8px;
-          padding: 12px 16px;
-          font-size: 13px;
-          color: #1d3a6d;
+          box-shadow: 0 8px 32px 0 rgba(255, 82, 82, 0.15);
           animation: slideDown 0.3s ease-out;
         }
 
@@ -155,273 +203,252 @@ export default function RegisterPage() {
           }
         }
 
-        .link-apple {
-          color: #0071e3;
+        .link-text {
+          color: #64b5f6;
           text-decoration: none;
-          font-weight: 500;
+          font-weight: 600;
           transition: opacity 0.2s;
         }
 
-        .link-apple:hover {
+        .link-text:hover {
+          opacity: 0.8;
+        }
+
+        .footer-text {
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 12px;
+        }
+
+        .logo-bottom {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 50;
           opacity: 0.7;
+          transition: opacity 0.3s ease;
         }
 
-        .ios-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        .logo-bottom:hover {
+          opacity: 1;
         }
 
-        .field-row {
+        .logo-bottom img {
+          height: 48px;
+          width: auto;
+          filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+
+        .form-grid {
           display: grid;
-          gap: 20px;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
         }
 
-        .field-row.two-cols {
-          grid-template-columns: repeat(2, 1fr);
+        .form-grid.full {
+          grid-template-columns: 1fr;
         }
 
         @media (max-width: 640px) {
-          .field-row.two-cols {
+          .auth-form {
+            max-width: 95%;
+          }
+
+          .form-grid {
             grid-template-columns: 1fr;
+          }
+
+          .logo-bottom {
+            bottom: 12px;
+            right: 12px;
+          }
+
+          .logo-bottom img {
+            height: 36px;
           }
         }
       `}</style>
 
-      <div className="w-full max-w-md px-6">
-        <div className="ios-card p-8">
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <img 
-              src="/logo.png" 
-              alt="RISE Logo" 
-              className="h-14 w-auto object-contain"
+      <div className="auth-form">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-white mb-1">
+            Rejoindre RISE
+          </h1>
+          <p className="text-xs text-gray-400">
+            Créez votre compte dès maintenant
+          </p>
+        </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="error-alert p-2 mb-4">
+            {error}
+          </div>
+        )}
+
+        {validationError && (
+          <div className="error-alert p-2 mb-4">
+            {validationError}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* First Name & Last Name */}
+          <div className="form-grid">
+            <div>
+              <label className="auth-label block mb-1">Prénom</label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="auth-input w-full px-3 py-2 rounded-2xl"
+                required
+              />
+            </div>
+            <div>
+              <label className="auth-label block mb-1">Nom</label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="auth-input w-full px-3 py-2 rounded-2xl"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="auth-label block mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="auth-input w-full px-3 py-2 rounded-2xl"
+              placeholder="votre@email.com"
+              required
             />
           </div>
 
-          {/* Title */}
-          <h1 className="text-center text-3xl font-bold text-black mb-2">
-            Rejoindre RISE
-          </h1>
-          <p className="text-center text-gray-500 text-sm mb-8">
-            Créez votre compte dès maintenant
-          </p>
+          {/* Matricule Number */}
+          <div>
+            <label className="auth-label block mb-1">Numéro Matricule *</label>
+            <input
+              type="text"
+              name="matriculeNumber"
+              value={formData.matriculeNumber}
+              onChange={handleChange}
+              className="auth-input w-full px-3 py-2 rounded-2xl"
+              placeholder="ex: 001/LA/24-25"
+              required
+            />
+          </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="error-alert mb-6">
-              {error}
-            </div>
-          )}
-
-          {validationError && (
-            <div className="error-alert mb-6">
-              {validationError}
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* First Name & Last Name */}
-            <div className="field-row two-cols">
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Prénom
-                </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  onFocus={() => setFocusedField('firstName')}
-                  onBlur={() => setFocusedField(null)}
-                  className="ios-input w-full px-4 py-3 rounded-12"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Nom
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  onFocus={() => setFocusedField('lastName')}
-                  onBlur={() => setFocusedField(null)}
-                  className="ios-input w-full px-4 py-3 rounded-12"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Email */}
+          {/* Classe & Filiere */}
+          <div className="form-grid">
             <div>
-              <label className="block text-sm font-semibold text-black mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
+              <label className="auth-label block mb-1">Classe</label>
+              <select
+                name="classe"
+                value={formData.classe}
                 onChange={handleChange}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
-                className="ios-input w-full px-4 py-3 rounded-12"
-                required
-              />
+                className="auth-select w-full px-3 py-2 rounded-2xl"
+              >
+                {classes.map((cls) => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
+              </select>
             </div>
-
-            {/* Matricule Number */}
-            <div>
-              <label className="block text-sm font-semibold text-black mb-2">
-                Numéro Matricule <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="matriculeNumber"
-                value={formData.matriculeNumber}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('matriculeNumber')}
-                onBlur={() => setFocusedField(null)}
-                placeholder="ex: 001/LA/24-25"
-                className="ios-input w-full px-4 py-3 rounded-12"
-                required
-              />
-            </div>
-
-            {/* Classe & Role */}
-            <div className="field-row two-cols">
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Classe
-                </label>
-                <select
-                  name="classe"
-                  value={formData.classe}
-                  onChange={handleChange}
-                  className="ios-select w-full px-4 py-3 rounded-12"
-                >
-                  {classes.map((cls) => (
-                    <option key={cls} value={cls}>{cls}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Rôle
-                </label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="ios-select w-full px-4 py-3 rounded-12"
-                >
-                  <option value="Student">Étudiant</option>
-                  <option value="Professor">Professeur</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Filiere - Conditional */}
             {showFiliere && (
-              <div className="animate-in">
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Filière <span className="text-red-500">*</span>
-                </label>
+              <div>
+                <label className="auth-label block mb-1">Filière *</label>
                 <select
                   name="filiere"
                   value={formData.filiere}
                   onChange={handleChange}
-                  className="ios-select w-full px-4 py-3 rounded-12"
+                  className="auth-select w-full px-3 py-2 rounded-2xl"
                 >
-                  <option value="">Sélectionner une filière</option>
+                  <option value="">Sélectionner</option>
                   {filieres.map((fil) => (
                     <option key={fil} value={fil}>{fil}</option>
                   ))}
                 </select>
               </div>
             )}
+          </div>
 
-            {/* Info for L1 */}
-            {formData.classe === 'L1' && (
-              <div className="info-text">
-                ℹ️ Tous les étudiants de L1 suivent le même cursus (pas de filière spécifique)
-              </div>
-            )}
-
-            {/* Password */}
+          {/* Password & Confirm */}
+          <div className="form-grid">
             <div>
-              <label className="block text-sm font-semibold text-black mb-2">
-                Mot de passe
-              </label>
+              <label className="auth-label block mb-1">Mot de passe</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField(null)}
-                className="ios-input w-full px-4 py-3 rounded-12"
+                className="auth-input w-full px-3 py-2 rounded-2xl"
                 required
               />
             </div>
-
-            {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-semibold text-black mb-2">
-                Confirmer mot de passe
-              </label>
+              <label className="auth-label block mb-1">Confirmer</label>
               <input
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                onFocus={() => setFocusedField('confirmPassword')}
-                onBlur={() => setFocusedField(null)}
-                className="ios-input w-full px-4 py-3 rounded-12"
+                className="auth-input w-full px-3 py-2 rounded-2xl"
                 required
               />
             </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="ios-button w-full bg-[#3A8B89] hover:bg-[#2F6F6D] text-white/80 font-semibold py-3 rounded-12 mt-8"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Inscription en cours...
-                </span>
-              ) : (
-                "S'inscrire"
-              )}
-            </button>
-          </form>
-
-          {/* Footer Link */}
-          <div className="text-center mt-8">
-            <p className="text-gray-600 text-sm">
-              Déjà inscrit ?{' '}
-              <Link to="/login" className="link-apple">
-                Se connecter
-              </Link>
-            </p>
           </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="auth-button w-full px-4 py-2 rounded-2xl mt-4 font-semibold text-sm"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Inscription en cours...
+              </span>
+            ) : (
+              "S'inscrire"
+            )}
+          </button>
+        </form>
+
+        {/* Footer Link */}
+        <div className="text-center mt-4">
+          <p className="text-xs text-gray-400">
+            Déjà inscrit ?{' '}
+            <Link to="/login" className="link-text">
+              Se connecter
+            </Link>
+          </p>
         </div>
 
         {/* Footer Text */}
-        <p className="text-center text-gray-500 text-xs mt-8">
-          © 2026 RISE Platform. Tous droits réservés.
+        <p className="footer-text text-center mt-4">
+          © 2026 RISE Platform
         </p>
+      </div>
+
+      {/* Logo Bottom Right */}
+      <div className="logo-bottom">
+        <img 
+          src="/logo.png" 
+          alt="RISE Logo"
+        />
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ export default function AdminFormAnalyticsPage() {
   const [error, setError] = useState('');
   const [downloadingCSV, setDownloadingCSV] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
+  const [expandedQuestions, setExpandedQuestions] = useState({}); // État pour les questions expandues
 
   useEffect(() => {
     loadData();
@@ -66,10 +67,24 @@ export default function AdminFormAnalyticsPage() {
         // Ajouter les réponses pour chaque question
         if (form.questions && form.questions.length > 0) {
           form.questions.forEach((question) => {
-            const answer = submission.answers?.find(a => a.questionId === question.id);
-            const answerText = answer 
-              ? (answer.optionText || answer.responseValue || '')
-              : '';
+            // Récupérer TOUTES les réponses pour cette question
+            const answers = submission.answers?.filter(a => a.questionId === question.id) || [];
+            
+            let answerText = '';
+            if (answers.length > 0) {
+              const answerTexts = answers.map(answer => {
+                // Si c'est une équipe, afficher les noms des membres
+                if (question.type === 'Team' && answer.teamMembers && answer.teamMembers.length > 0) {
+                  return answer.teamMembers
+                    .map(tm => `${tm.firstName} ${tm.lastName}`)
+                    .join('; ');
+                }
+                // Sinon afficher l'option ou la valeur
+                return answer.optionText || answer.responseValue || '';
+              }).filter(text => text); // Filtrer les vides
+              
+              answerText = answerTexts.join('\n'); // Saut de ligne pour multi-réponses
+            }
             row.push(answerText);
           });
         }
@@ -80,7 +95,7 @@ export default function AdminFormAnalyticsPage() {
       // Créer le contenu CSV
       const csvContent = [
         headers.join(','),
-        ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
+        ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')),
       ].join('\n');
 
       // Créer un blob et télécharger
@@ -128,10 +143,24 @@ export default function AdminFormAnalyticsPage() {
         // Ajouter les réponses pour chaque question
         if (form.questions && form.questions.length > 0) {
           form.questions.forEach((question) => {
-            const answer = submission.answers?.find(a => a.questionId === question.id);
-            const answerText = answer 
-              ? (answer.optionText || answer.responseValue || '')
-              : '';
+            // Récupérer TOUTES les réponses pour cette question
+            const answers = submission.answers?.filter(a => a.questionId === question.id) || [];
+            
+            let answerText = '';
+            if (answers.length > 0) {
+              const answerTexts = answers.map(answer => {
+                // Si c'est une équipe, afficher les noms des membres
+                if (question.type === 'Team' && answer.teamMembers && answer.teamMembers.length > 0) {
+                  return answer.teamMembers
+                    .map(tm => `${tm.firstName} ${tm.lastName}`)
+                    .join('; ');
+                }
+                // Sinon afficher l'option ou la valeur
+                return answer.optionText || answer.responseValue || '';
+              }).filter(text => text); // Filtrer les vides
+              
+              answerText = answerTexts.join('<br/>'); // Saut de ligne HTML pour multi-réponses
+            }
             row += `<td>${answerText}</td>`;
           });
         }
@@ -148,7 +177,7 @@ export default function AdminFormAnalyticsPage() {
               h2 { color: #333; }
               p { color: #666; margin-bottom: 20px; }
               table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-              th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+              th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: top; white-space: pre-wrap; word-break: break-word; }
               th { background-color: #4a5568; color: white; font-weight: bold; }
               tr:nth-child(even) { background-color: #f9f9f9; }
               tr:hover { background-color: #f0f0f0; }
@@ -232,6 +261,111 @@ export default function AdminFormAnalyticsPage() {
     }
 
     return answers.map((a) => a.responseValue);
+  };
+
+  // Fonction pour basculer l'expansion d'une question
+  const toggleQuestionExpanded = (questionId) => {
+    setExpandedQuestions(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }));
+  };
+
+  // Fonction pour calculer des stats intéressantes par question
+  const getDetailedQuestionStats = (question) => {
+    const answers = submissions.flatMap((s) => s.answers || []).filter((a) => a.questionId === question.id);
+    
+    // ✅ Compter les SOUMISSIONS avec réponse (pas le nombre de réponses)
+    const submissionsWithAnswer = new Set(
+      submissions
+        .filter(s => s.answers?.some(a => a.questionId === question.id))
+        .map(s => s.id)
+    ).size;
+    
+    const answerCount = submissionsWithAnswer; // Nombre de soumissions qui ont répondu
+    const nonAnswerCount = submissions.length - answerCount;
+
+    if (question.type === 'MultipleChoice' || question.type === 'Checkboxes' || question.type === 'Dropdown') {
+      const optionCounts = {};
+      answers.forEach((a) => {
+        // Utiliser optionText si disponible, sinon responseValue
+        const optionText = a.optionText || a.responseValue || 'Sans label';
+        optionCounts[optionText] = (optionCounts[optionText] || 0) + 1;
+      });
+      
+      const totalOptions = Object.keys(optionCounts).length;
+      const mostPopular = Object.entries(optionCounts).reduce((a, b) => a[1] > b[1] ? a : b, ['', 0]);
+      const responseRate = submissions.length > 0 ? Math.round((answerCount / submissions.length) * 100) : 0;
+      
+      return {
+        type: 'choice',
+        answerCount,
+        nonAnswerCount,
+        responseRate,
+        totalOptions,
+        mostPopularOption: mostPopular[0],
+        mostPopularCount: mostPopular[1],
+        optionCounts
+      };
+    }
+
+    if (question.type === 'Scale') {
+      const values = answers.map(a => parseInt(a.responseValue)).filter(v => !isNaN(v));
+      if (values.length === 0) return { type: 'scale', answerCount: 0, nonAnswerCount: submissions.length, responseRate: 0, average: 0, median: 0 };
+      
+      values.sort((a, b) => a - b);
+      const sum = values.reduce((a, b) => a + b, 0);
+      const average = Math.round(sum / values.length * 10) / 10;
+      const median = values[Math.floor(values.length / 2)];
+      const responseRate = Math.round((answerCount / submissions.length) * 100);
+      
+      return {
+        type: 'scale',
+        answerCount,
+        nonAnswerCount,
+        responseRate,
+        average,
+        median,
+        min: Math.min(...values),
+        max: Math.max(...values)
+      };
+    }
+
+    if (question.type === 'Team') {
+      const teams = [];
+      answers.forEach(a => {
+        if (a.teamMembers && a.teamMembers.length > 0) {
+          a.teamMembers.forEach(member => {
+            teams.push(`${member.firstName} ${member.lastName}`);
+          });
+        }
+      });
+      
+      const responseRate = Math.round((answerCount / submissions.length) * 100);
+      const totalMembers = teams.length;
+      const avgMembersPerTeam = answerCount > 0 ? Math.round(totalMembers / answerCount * 10) / 10 : 0;
+      
+      return {
+        type: 'team',
+        answerCount,
+        nonAnswerCount,
+        responseRate,
+        totalMembers,
+        avgMembersPerTeam
+      };
+    }
+
+    // Pour les textes
+    const responseRate = Math.round((answerCount / submissions.length) * 100);
+    const avgLength = answerCount > 0 ? Math.round(answers.reduce((sum, a) => sum + (a.responseValue || '').length, 0) / answerCount) : 0;
+    
+    return {
+      type: 'text',
+      answerCount,
+      nonAnswerCount,
+      responseRate,
+      avgLength
+    };
   };
 
   if (loading) {
@@ -376,64 +510,147 @@ export default function AdminFormAnalyticsPage() {
 
           {form.questions?.map((question, qIndex) => {
             const questionStats = getQuestionStats(question);
-            const answerCount = submissions.flatMap((s) => s.answers || []).filter((a) => a.questionId === question.id).length;
+            const detailedStats = getDetailedQuestionStats(question);
+            const isExpanded = expandedQuestions[question.id] || false;
 
             return (
               <div key={question.id} className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-gray-200/40 shadow-sm">
+                {/* En-tête avec stats résumées */}
                 <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-teal-100/60 to-teal-50/40 text-teal-700 rounded-full text-sm font-bold border border-teal-200/40">
-                      {qIndex + 1}
-                    </span>
-                    <h3 className="text-lg font-semibold text-gray-900">{question.title}</h3>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-teal-100/60 to-teal-50/40 text-teal-700 rounded-full text-sm font-bold border border-teal-200/40">
+                          {qIndex + 1}
+                        </span>
+                        <h3 className="text-lg font-semibold text-gray-900">{question.title}</h3>
+                      </div>
+                      {question.description && (
+                        <p className="text-gray-600 text-sm ml-11">{question.description}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => toggleQuestionExpanded(question.id)}
+                      className="ml-4 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white rounded-lg transition font-semibold text-sm shadow-md border border-teal-400/30 whitespace-nowrap"
+                    >
+                      {isExpanded ? '▼ Masquer détails' : '▶ Voir détails'}
+                    </button>
                   </div>
-                  {question.description && (
-                    <p className="text-gray-600 text-sm ml-11">{question.description}</p>
-                  )}
-                  <div className="mt-3 ml-11 flex flex-wrap gap-4 text-sm">
-                    <span className="text-gray-600">Type: <span className="font-bold text-gray-900">{question.type}</span></span>
-                    <span className="text-gray-600">Réponses: <span className="font-bold text-teal-700">{answerCount}/{submissions.length}</span></span>
-                    <span className="text-gray-600">Taux: <span className="font-bold text-emerald-700">
-                      {submissions.length > 0 ? Math.round((answerCount / submissions.length) * 100) : 0}%
-                    </span></span>
+
+                  {/* Stats résumées toujours visibles */}
+                  <div className="ml-11 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {detailedStats.type === 'choice' && (
+                      <>
+                        <div className="bg-gradient-to-br from-blue-50/80 to-cyan-50/80 rounded-lg p-3 border border-blue-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Taux réponse</p>
+                          <p className="text-xl font-bold text-blue-700">{detailedStats.responseRate}%</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-50/80 to-pink-50/80 rounded-lg p-3 border border-purple-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Total options</p>
+                          <p className="text-xl font-bold text-purple-700">{detailedStats.totalOptions}</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-emerald-50/80 to-teal-50/80 rounded-lg p-3 border border-emerald-200/60 md:col-span-2">
+                          <p className="text-xs font-semibold text-gray-600">Option populaire</p>
+                          <p className="text-sm font-bold text-emerald-700 truncate">{detailedStats.mostPopularOption} ({detailedStats.mostPopularCount})</p>
+                        </div>
+                      </>
+                    )}
+                    
+                    {detailedStats.type === 'scale' && (
+                      <>
+                        <div className="bg-gradient-to-br from-blue-50/80 to-cyan-50/80 rounded-lg p-3 border border-blue-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Taux réponse</p>
+                          <p className="text-xl font-bold text-blue-700">{detailedStats.responseRate}%</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-50/80 to-pink-50/80 rounded-lg p-3 border border-purple-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Moyenne</p>
+                          <p className="text-xl font-bold text-purple-700">{detailedStats.average}/5</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-orange-50/80 to-yellow-50/80 rounded-lg p-3 border border-orange-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Médiane</p>
+                          <p className="text-xl font-bold text-orange-700">{detailedStats.median}</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-red-50/80 to-rose-50/80 rounded-lg p-3 border border-red-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Étendue</p>
+                          <p className="text-xl font-bold text-red-700">{detailedStats.min}-{detailedStats.max}</p>
+                        </div>
+                      </>
+                    )}
+
+                    {detailedStats.type === 'team' && (
+                      <>
+                        <div className="bg-gradient-to-br from-blue-50/80 to-cyan-50/80 rounded-lg p-3 border border-blue-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Taux réponse</p>
+                          <p className="text-xl font-bold text-blue-700">{detailedStats.responseRate}%</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-50/80 to-pink-50/80 rounded-lg p-3 border border-purple-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Total membres</p>
+                          <p className="text-xl font-bold text-purple-700">{detailedStats.totalMembers}</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-emerald-50/80 to-teal-50/80 rounded-lg p-3 border border-emerald-200/60 md:col-span-2">
+                          <p className="text-xs font-semibold text-gray-600">Moyenne par équipe</p>
+                          <p className="text-xl font-bold text-emerald-700">{detailedStats.avgMembersPerTeam} pers.</p>
+                        </div>
+                      </>
+                    )}
+
+                    {detailedStats.type === 'text' && (
+                      <>
+                        <div className="bg-gradient-to-br from-blue-50/80 to-cyan-50/80 rounded-lg p-3 border border-blue-200/60">
+                          <p className="text-xs font-semibold text-gray-600">Taux réponse</p>
+                          <p className="text-xl font-bold text-blue-700">{detailedStats.responseRate}%</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-50/80 to-pink-50/80 rounded-lg p-3 border border-purple-200/60 md:col-span-3">
+                          <p className="text-xs font-semibold text-gray-600">Moyenne caractères</p>
+                          <p className="text-xl font-bold text-purple-700">{detailedStats.avgLength} chars</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Affichage des réponses */}
-                {typeof questionStats === 'object' && !Array.isArray(questionStats) ? (
-                  <div className="space-y-3">
-                    {Object.entries(questionStats).map(([option, count]) => {
-                      const percentage = answerCount > 0 ? Math.round((count / answerCount) * 100) : 0;
-                      return (
-                        <div key={option} className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-700 font-medium">{option}</span>
-                            <span className="text-gray-600">{count} ({percentage}%)</span>
-                          </div>
-                          <div className="w-full h-8 bg-white/40 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-200/40">
-                            <div
-                              className="h-full bg-gradient-to-r from-teal-500 to-teal-600 flex items-center pl-3 transition-all duration-300"
-                              style={{ width: `${percentage}%` }}
-                            >
-                              {percentage > 15 && (
-                                <span className="text-white text-xs font-bold">{percentage}%</span>
-                              )}
+                {/* Détails expandus */}
+                {isExpanded && (
+                  <div className="border-t border-gray-200/40 pt-6">
+                    {/* Affichage des réponses */}
+                    {typeof questionStats === 'object' && !Array.isArray(questionStats) ? (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900 mb-4">Distribution des réponses</h4>
+                        {Object.entries(questionStats).map(([option, count]) => {
+                          const percentage = detailedStats.answerCount > 0 ? Math.round((count / detailedStats.answerCount) * 100) : 0;
+                          return (
+                            <div key={option} className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-700 font-medium">{option}</span>
+                                <span className="text-gray-600">{count} ({percentage}%)</span>
+                              </div>
+                              <div className="w-full h-8 bg-white/40 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-200/40">
+                                <div
+                                  className="h-full bg-gradient-to-r from-teal-500 to-teal-600 flex items-center pl-3 transition-all duration-300"
+                                  style={{ width: `${percentage}%` }}
+                                >
+                                  {percentage > 15 && (
+                                    <span className="text-white text-xs font-bold">{percentage}%</span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {Array.isArray(questionStats) && questionStats.length > 0 ? (
-                      questionStats.map((response, idx) => (
-                        <div key={idx} className="p-3 bg-gradient-to-br from-teal-50/60 to-white/30 rounded-xl text-sm text-gray-700 border border-teal-200/40">
-                          {response || '(aucune réponse)'}
-                        </div>
-                      ))
+                          );
+                        })}
+                      </div>
                     ) : (
-                      <p className="text-gray-600 text-sm">Aucune réponse pour cette question</p>
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        <h4 className="font-semibold text-gray-900 mb-4">Réponses textuelles</h4>
+                        {Array.isArray(questionStats) && questionStats.length > 0 ? (
+                          questionStats.map((response, idx) => (
+                            <div key={idx} className="p-3 bg-gradient-to-br from-teal-50/60 to-white/30 rounded-xl text-sm text-gray-700 border border-teal-200/40">
+                              {response || '(aucune réponse)'}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-600 text-sm">Aucune réponse pour cette question</p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
@@ -445,22 +662,31 @@ export default function AdminFormAnalyticsPage() {
         {/* Tableau des réponses */}
         {submissions.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">Tableau des Réponses</h2>
-            <div className="bg-white/40 backdrop-blur-xl rounded-3xl overflow-hidden border border-gray-200/40 shadow-sm">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">Tableau Détaillé des Réponses</h2>
+            <div className="bg-white/40 backdrop-blur-xl rounded-3xl overflow-x-auto border border-gray-200/40 shadow-sm">
               <table className="w-full text-sm">
-                <thead className="bg-gradient-to-r from-teal-50/60 to-white/30 border-b border-gray-200/40">
+                <thead className="bg-gradient-to-r from-teal-50/60 to-white/30 border-b border-gray-200/40 sticky top-0">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-700">#</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-700">Utilisateur</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-700">Date</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-700">Statut</th>
+                    <th className="px-6 py-4 text-left font-semibold text-gray-700 min-w-12">#</th>
+                    <th className="px-6 py-4 text-left font-semibold text-gray-700 min-w-48">Utilisateur</th>
+                    <th className="px-6 py-4 text-left font-semibold text-gray-700 min-w-40">Date</th>
+                    {form.questions?.map((question) => (
+                      <th key={question.id} className="px-6 py-4 text-left font-semibold text-gray-700 min-w-64">
+                        {question.title}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {submissions.slice(0, 20).map((submission, idx) => (
+                  {submissions.map((submission, idx) => (
                     <tr key={submission.id} className="border-b border-gray-200/40 hover:bg-teal-50/40 transition">
-                      <td className="px-6 py-4 text-gray-900">{idx + 1}</td>
-                      <td className="px-6 py-4 text-teal-700 font-semibold">{submission.userName || 'Anonyme'}</td>
+                      <td className="px-6 py-4 text-gray-900 font-semibold">{idx + 1}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-teal-700 font-semibold">{submission.userName || 'Anonyme'}</span>
+                          <span className="text-gray-600 text-xs">{submission.userEmail || 'N/A'}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-gray-600 text-xs">
                         {new Date(submission.submittedAt).toLocaleDateString('fr-FR', {
                           day: '2-digit',
@@ -470,20 +696,54 @@ export default function AdminFormAnalyticsPage() {
                           minute: '2-digit',
                         })}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-3 py-1 bg-emerald-100/60 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200/40 backdrop-blur-sm">
-                           Complété
-                        </span>
-                      </td>
+                      {form.questions?.map((question) => {
+                        // Récupérer TOUTES les réponses pour cette question
+                        const answers = submission.answers?.filter(a => a.questionId === question.id) || [];
+                        
+                        return (
+                          <td key={`${submission.id}-${question.id}`} className="px-6 py-4 text-gray-700">
+                            {answers.length > 0 ? (
+                              <div className="flex flex-col gap-2">
+                                {answers.map((answer, aIdx) => (
+                                  <div key={aIdx} className="bg-gradient-to-r from-teal-50/80 to-emerald-50/80 border border-teal-200/60 rounded-lg p-2 text-sm">
+                                    {question.type === 'Team' && answer.teamMembers && answer.teamMembers.length > 0 ? (
+                                      <div className="flex flex-col gap-1">
+                                        {answer.teamMembers.map((member, mIdx) => (
+                                          <div key={mIdx} className="flex items-center gap-2">
+                                            {member.profileImageUrl && (
+                                              <img 
+                                                src={member.profileImageUrl} 
+                                                alt={member.firstName}
+                                                className="w-6 h-6 rounded-full object-cover"
+                                              />
+                                            )}
+                                            <span className="font-medium text-teal-700">
+                                              {member.firstName} {member.lastName}
+                                            </span>
+                                            {member.matriculeNumber && (
+                                              <span className="text-xs text-gray-500">({member.matriculeNumber})</span>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <span className="text-teal-700 font-medium">
+                                        {answer.optionText || answer.responseValue || '—'}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 italic">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {submissions.length > 20 && (
-                <div className="px-6 py-4 bg-gradient-to-r from-teal-50/40 to-white/30 border-t border-gray-200/40 text-center text-sm text-gray-700 font-semibold">
-                  +{submissions.length - 20} autres réponses
-                </div>
-              )}
             </div>
           </div>
         )}

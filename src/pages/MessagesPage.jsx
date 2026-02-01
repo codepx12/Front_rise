@@ -12,7 +12,7 @@ import {
   Paperclip,
   ArrowLeft,
   Reply,
-  ThumbsUp,
+  ThumbsUp, 
   Heart,
   Laugh,
   Frown,
