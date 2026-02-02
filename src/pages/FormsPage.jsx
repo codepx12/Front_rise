@@ -156,174 +156,176 @@ export default function FormsPage() {
 
   return (
     <MainLayout>
-      {/* Page Header - Mono #2E7379 */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-end gap-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg border border-opacity-20" style={{ backgroundColor: '#2E7379' }}>
-              <FileText size={28} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-5xl font-black text-gray-900 tracking-tight">Formulaires</h1>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="h-1 w-8 rounded-full" style={{ backgroundColor: '#2E7379' }}></div>
-                <p className="text-gray-600 font-medium">Participez à nos enquêtes et sondages</p>
+      <div className="px-4 md:px-8 lg:px-12 xl:px-16 py-8">
+        {/* Page Header - Mono #2E7379 */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-end gap-4">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg border border-opacity-20" style={{ backgroundColor: '#2E7379' }}>
+                <FileText size={28} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-black text-gray-900 tracking-tight">Formulaires</h1>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="h-1 w-8 rounded-full" style={{ backgroundColor: '#2E7379' }}></div>
+                  <p className="text-gray-600 font-medium">Participez à nos enquêtes et sondages</p>
+                </div>
               </div>
             </div>
+            <div className="text-4xl">📋</div>
           </div>
-          <div className="text-4xl">📋</div>
         </div>
-      </div>
 
-      {/* Filters - Mono #2E7379 */}
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <div className="w-1 h-6 rounded" style={{ backgroundColor: '#2E7379' }}></div>
-          Filtrer par statut
-        </h2>
-        <div className="flex flex-wrap gap-3 bg-white/40 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/40 shadow-sm">
-          {['all', 'active', 'inactive'].map((type) => (
-            <button
-              key={type}
-              onClick={() => setFilter(type)}
-              className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 transform backdrop-blur-sm border ${
-                filter === type
-                  ? 'text-white shadow-lg scale-105'
-                  : 'bg-white/60 text-gray-700 hover:bg-white/80 border-2 border-gray-200/40 hover:border-gray-400/60'
-              }`}
-              style={filter === type ? { backgroundColor: '#2E7379', borderColor: '#2E7379' } : {}}
-            >
-              {type === 'all' ? '🎯 Tous' : type === 'active' ? '🟢 En cours' : '⏸️ Inactifs'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {error && (
-        <div className="bg-red-50/60 backdrop-blur-lg border border-red-200/40 border-l-4 text-red-700 px-6 py-4 rounded-2xl mb-8 shadow-sm" style={{ borderLeftColor: '#2E7379' }}>
-          <p className="font-semibold">Erreur</p>
-          <p className="text-sm mt-1">{error}</p>
-        </div>
-      )}
-
-      {filteredForms.length === 0 ? (
-        <div className="bg-white/40 backdrop-blur-xl rounded-3xl border border-gray-200/40 p-20 text-center shadow-sm">
-          <div className="mb-4 flex justify-center">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center border border-gray-200/40 shadow-md" style={{ backgroundColor: '#2E7379', backgroundOpacity: '0.1' }}>
-              <FileText size={40} style={{ color: '#2E7379' }} />
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Aucun formulaire disponible</h2>
-          <p className="text-gray-600">Les formulaires disponibles apparaîtront ici.</p>
-        </div>
-      ) : (
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {filteredForms.map((form) => {
-            const status = getFormStatus(form);
-            const active = isFormActive(form);
-
-            return (
-              <div
-                key={form.id}
-                className="group relative bg-white/40 backdrop-blur-xl rounded-3xl overflow-hidden border border-gray-200/40 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col"
+        {/* Filters - Mono #2E7379 */}
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <div className="w-1 h-6 rounded" style={{ backgroundColor: '#2E7379' }}></div>
+            Filtrer par statut
+          </h2>
+          <div className="flex flex-wrap gap-3 bg-white/40 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/40 shadow-sm">
+            {['all', 'active', 'inactive'].map((type) => (
+              <button
+                key={type}
+                onClick={() => setFilter(type)}
+                className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 transform backdrop-blur-sm border ${
+                  filter === type
+                    ? 'text-white shadow-lg scale-105'
+                    : 'bg-white/60 text-gray-700 hover:bg-white/80 border-2 border-gray-200/40 hover:border-gray-400/60'
+                }`}
+                style={filter === type ? { backgroundColor: '#2E7379', borderColor: '#2E7379' } : {}}
               >
-                {/* Status badge */}
-                <div className="absolute top-4 right-4 z-10">
-                  <span className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-bold backdrop-blur-lg border border-gray-200/40 bg-white/80 text-gray-700 shadow-md">
-                    <span>{status.icon}</span>
-                    {status.text}
-                  </span>
-                </div>
+                {type === 'all' ? '🎯 Tous' : type === 'active' ? '🟢 En cours' : '⏸️ Inactifs'}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                {/* Header */}
-                <div className="relative px-6 py-5 border-b border-gray-200/40">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md border border-white/20 text-white" style={{ backgroundColor: '#2E7379' }}>
-                      <FileText size={20} />
+        {error && (
+          <div className="bg-red-50/60 backdrop-blur-lg border border-red-200/40 border-l-4 text-red-700 px-6 py-4 rounded-2xl mb-8 shadow-sm" style={{ borderLeftColor: '#2E7379' }}>
+            <p className="font-semibold">Erreur</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+        )}
+
+        {filteredForms.length === 0 ? (
+          <div className="bg-white/40 backdrop-blur-xl rounded-3xl border border-gray-200/40 p-20 text-center shadow-sm">
+            <div className="mb-4 flex justify-center">
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center border border-gray-200/40 shadow-md" style={{ backgroundColor: '#2E7379', backgroundOpacity: '0.1' }}>
+                <FileText size={40} style={{ color: '#2E7379' }} />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Aucun formulaire disponible</h2>
+            <p className="text-gray-600">Les formulaires disponibles apparaîtront ici.</p>
+          </div>
+        ) : (
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {filteredForms.map((form) => {
+              const status = getFormStatus(form);
+              const active = isFormActive(form);
+
+              return (
+                <div
+                  key={form.id}
+                  className="group relative bg-white/40 backdrop-blur-xl rounded-3xl overflow-hidden border border-gray-200/40 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col"
+                >
+                  {/* Status badge */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <span className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-bold backdrop-blur-lg border border-gray-200/40 bg-white/80 text-gray-700 shadow-md">
+                      <span>{status.icon}</span>
+                      {status.text}
+                    </span>
+                  </div>
+
+                  {/* Header */}
+                  <div className="relative px-6 py-5 border-b border-gray-200/40">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md border border-white/20 text-white" style={{ backgroundColor: '#2E7379' }}>
+                        <FileText size={20} />
+                      </div>
+                      <div className="flex-1 pr-20">
+                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
+                          {form.title}
+                        </h3>
+                        {form.description && (
+                          <p className="text-xs text-gray-600 line-clamp-1 mt-1">
+                            {form.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1 pr-20">
-                      <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
-                        {form.title}
-                      </h3>
-                      {form.description && (
-                        <p className="text-xs text-gray-600 line-clamp-1 mt-1">
-                          {form.description}
-                        </p>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6 flex-1 flex flex-col">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-gray-200/40 shadow-sm">
+                        <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-1">Questions</p>
+                        <p className="text-2xl font-bold" style={{ color: '#2E7379' }}>{form.questions?.length || 0}</p>
+                      </div>
+                      <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-gray-200/40 shadow-sm">
+                        <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-1">Réponses</p>
+                        <p className="text-2xl font-bold" style={{ color: '#2E7379' }}>{form.totalResponses || 0}</p>
+                      </div>
+                    </div>
+
+                    {/* Meta Info */}
+                    <div className="space-y-2 text-sm text-gray-600 border-t border-gray-200/40 pt-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} style={{ color: '#2E7379' }} />
+                        <span>Jusqu'au <span className="font-semibold text-gray-900">{new Date(form.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</span></span>
+                      </div>
+                      {form.createdBy && (
+                        <div className="flex items-center gap-2 pt-2">
+                          <Users size={16} style={{ color: '#2E7379' }} />
+                          <span>Par </span>
+                          <UserLink 
+                            user={form.createdBy}
+                            showAvatar={true}
+                            avatarSize="sm"
+                            nameClassName="text-xs"
+                            className="text-sm"
+                          />
+                        </div>
                       )}
                     </div>
-                  </div>
-                </div>
 
-                {/* Content */}
-                <div className="p-6 flex-1 flex flex-col">
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-gray-200/40 shadow-sm">
-                      <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-1">Questions</p>
-                      <p className="text-2xl font-bold" style={{ color: '#2E7379' }}>{form.questions?.length || 0}</p>
-                    </div>
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-gray-200/40 shadow-sm">
-                      <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-1">Réponses</p>
-                      <p className="text-2xl font-bold" style={{ color: '#2E7379' }}>{form.totalResponses || 0}</p>
-                    </div>
-                  </div>
-
-                  {/* Meta Info */}
-                  <div className="space-y-2 text-sm text-gray-600 border-t border-gray-200/40 pt-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Clock size={16} style={{ color: '#2E7379' }} />
-                      <span>Jusqu'au <span className="font-semibold text-gray-900">{new Date(form.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</span></span>
-                    </div>
-                    {form.createdBy && (
-                      <div className="flex items-center gap-2 pt-2">
-                        <Users size={16} style={{ color: '#2E7379' }} />
-                        <span>Par </span>
-                        <UserLink 
-                          user={form.createdBy}
-                          showAvatar={true}
-                          avatarSize="sm"
-                          nameClassName="text-xs"
-                          className="text-sm"
-                        />
+                    {/* Tags */}
+                    {form.allowMultipleResponses && (
+                      <div className="mb-6 flex gap-2">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-white/60 backdrop-blur-sm text-sm font-bold rounded-full border border-gray-200/40" style={{ color: '#2E7379' }}>
+                          ⚡ Réponses multiples
+                        </span>
                       </div>
                     )}
+
+                    {/* Button */}
+                    <button
+                      onClick={() => handleOpenForm(form)}
+                      disabled={!active}
+                      className={`mt-auto py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-white shadow-md active:scale-95 backdrop-blur-sm border border-opacity-20 ${
+                        active
+                          ? 'hover:shadow-lg'
+                          : 'opacity-50 cursor-not-allowed'
+                      }`}
+                      style={{ backgroundColor: active ? '#2E7379' : '#999999' }}
+                    >
+                      {active ? (
+                        <>
+                          Commencer
+                          <ArrowRight size={18} />
+                        </>
+                      ) : (
+                        new Date() > new Date(form.endDate) ? 'Formulaire fermé' : 'À venir'
+                      )}
+                    </button>
                   </div>
-
-                  {/* Tags */}
-                  {form.allowMultipleResponses && (
-                    <div className="mb-6 flex gap-2">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-white/60 backdrop-blur-sm text-sm font-bold rounded-full border border-gray-200/40" style={{ color: '#2E7379' }}>
-                        ⚡ Réponses multiples
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Button */}
-                  <button
-                    onClick={() => handleOpenForm(form)}
-                    disabled={!active}
-                    className={`mt-auto py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-white shadow-md active:scale-95 backdrop-blur-sm border border-opacity-20 ${
-                      active
-                        ? 'hover:shadow-lg'
-                        : 'opacity-50 cursor-not-allowed'
-                    }`}
-                    style={{ backgroundColor: active ? '#2E7379' : '#999999' }}
-                  >
-                    {active ? (
-                      <>
-                        Commencer
-                        <ArrowRight size={18} />
-                      </>
-                    ) : (
-                      new Date() > new Date(form.endDate) ? 'Formulaire fermé' : 'À venir'
-                    )}
-                  </button>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Modal - Mono #2E7379 */}
       {selectedForm && (

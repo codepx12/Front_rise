@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Users, FileText, AlertCircle, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, Users, AlertCircle, ChevronRight } from 'lucide-react';
 
 export default function EventsSidebar({ events }) {
   const navigate = useNavigate();
@@ -16,8 +16,8 @@ export default function EventsSidebar({ events }) {
   };
 
   return (
-    <div className="hidden lg:block w-72 flex-shrink-0">
-      <div className="fixed right-0 top-20 w-72 h-[calc(100vh-80px)] overflow-y-auto pr-1">
+    <div className="hidden lg:block w-72 shrink-0">
+      <aside className="fixed right-0 top-20 w-72 h-[calc(100vh-80px)] overflow-y-auto pr-1" aria-label="Barre latérale des événements">
         <style>{`
           .scrollbar-hide::-webkit-scrollbar {
             width: 6px;
@@ -34,121 +34,134 @@ export default function EventsSidebar({ events }) {
           }
         `}</style>
 
-        {/* Événements Récents - iOS 26 Mono Style */}
-        <div className="bg-white/20 backdrop-blur-3xl rounded-3xl shadow-xl border border-white/30 p-5 mb-6 scrollbar-hide">
-          <div className="flex items-center gap-2 mb-5">
-            <div className="p-2 bg-white/20 backdrop-blur-2xl rounded-lg">
-              <Calendar size={18} className="text-gray-700" />
+        {/* Conteneur principal - fond clair (EDF0FC) */}
+        <div className="p-3 bg-[#EDF0FC] rounded-3xl h-full scrollbar-hide">
+
+          {/* Événements Récents */}
+          <section className="mb-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#C4DBDD] rounded-md flex items-center justify-center">
+                  <Calendar size={18} className="text-[#2E7379]" />
+                </div>
+                <h3 className="font-semibold text-black text-lg leading-tight">Événements</h3>
+              </div>
+
+              <button
+                onClick={() => navigate('/events')}
+                className="text-sm text-black hover:text-[#2E7379] focus:outline-none focus:underline"
+                aria-label="Voir tous les événements"
+              >
+                Voir tout
+              </button>
             </div>
-            <h3 className="font-bold text-gray-950 text-lg">Événements</h3>
-          </div>
-          <div className="space-y-3">
-            {events && events.length > 0 ? (
-              events.slice(0, 5).map((event) => (
-                <div
-                  key={event.id}
-                  onClick={() => navigate(`/events/${event.id}`)}
-                  className="bg-white/15 backdrop-blur-2xl rounded-xl p-3 hover:bg-white/25 transition-all duration-200 cursor-pointer border border-white/20 group"
-                >
-                  {/* Event Poster */}
-                  {event.posterUrl && (
-                    <img
-                      src={event.posterUrl}
-                      alt={event.name}
-                      className="w-full h-20 object-cover rounded-lg mb-2 group-hover:shadow-lg transition opacity-80 group-hover:opacity-100"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  )}
 
-                  {/* Event Name */}
-                  <h4 className="font-semibold text-sm text-gray-950 line-clamp-2 mb-2">
-                    {event.name}
-                  </h4>
+            <div className="space-y-3">
+              {events && events.length > 0 ? (
+                events.slice(0, 5).map((event) => (
+                  <div
+                    key={event.id}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/events/${event.id}`); }}
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    className="flex flex-col bg-white rounded-md border border-[#C4DBDD] p-3 hover:shadow-md transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-[#C4DBDD] focus:ring-offset-2 focus:ring-offset-[#EDF0FC]"
+                  >
+                    {/* Image du poster */}
+                    {event.posterUrl && (
+                      <img
+                        src={event.posterUrl}
+                        alt={event.name}
+                        className="w-full h-20 object-cover rounded-md mb-3 transition-shadow"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
 
-                  {/* Event Details - Minimal */}
-                  <div className="space-y-1 text-xs text-gray-700">
-                    {/* Date */}
-                    <div className="flex items-center gap-2">
-                      <Calendar size={12} className="text-gray-600 shrink-0" />
-                      <span className="line-clamp-1 text-gray-800">
-                        {formatDate(event.startDate)}
-                      </span>
+                    <h4 className="font-semibold text-sm text-black line-clamp-2 mb-1">
+                      {event.name}
+                    </h4>
+
+                    <div className="flex flex-wrap gap-3 items-center text-xs text-black">
+                      <div className="flex items-center gap-1">
+                        <Calendar size={12} className="text-[#2E7379]" />
+                        <span className="text-xs text-black">{formatDate(event.startDate)}</span>
+                      </div>
+
+                      {event.location && (
+                        <div className="flex items-center gap-1">
+                          <MapPin size={12} className="text-[#2E7379]" />
+                          <span className="text-xs text-black truncate">{event.location}</span>
+                        </div>
+                      )}
+
+                      {event.registeredCount !== undefined && (
+                        <div className="flex items-center gap-1">
+                          <Users size={12} className="text-[#2E7379]" />
+                          <span className="text-xs font-semibold text-black">{event.registeredCount} inscrit{event.registeredCount > 1 ? 's' : ''}</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Location */}
-                    {event.location && (
-                      <div className="flex items-center gap-2">
-                        <MapPin size={12} className="text-gray-600 shrink-0" />
-                        <span className="line-clamp-1 text-gray-800">{event.location}</span>
-                      </div>
-                    )}
-
-                    {/* Registered Count */}
-                    {event.registeredCount !== undefined && (
-                      <div className="flex items-center gap-2">
-                        <Users size={12} className="text-gray-600 shrink-0" />
-                        <span className="text-gray-800">{event.registeredCount} inscrit{event.registeredCount > 1 ? 's' : ''}</span>
-                      </div>
-                    )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}`); }}
+                      aria-label={`Voir détails ${event.name}`}
+                      className="mt-3 w-full bg-[#2E7379] hover:opacity-95 text-white text-xs font-semibold py-2 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-[#2E7379] focus:ring-offset-2 focus:ring-offset-[#EDF0FC]"
+                    >
+                      Voir détails
+                    </button>
                   </div>
-
-                  {/* View Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/events/${event.id}`);
-                    }}
-                    className="mt-3 w-full bg-white/30 hover:bg-white/40 text-gray-950 text-xs font-semibold py-2 rounded-lg transition duration-200 border border-white/30"
-                  >
-                    Voir détails
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-700 text-sm text-center py-4">Aucun événement</p>
-            )}
-          </div>
-        </div>
-
-        {/* Suggestions pour vous */}
-        <div className="bg-white/20 backdrop-blur-3xl rounded-3xl shadow-xl border border-white/30 p-5 scrollbar-hide">
-          <div className="flex items-center gap-2 mb-5">
-            <div className="p-2 bg-white/20 backdrop-blur-2xl rounded-lg">
-              <AlertCircle size={18} className="text-gray-700" />
+                ))
+              ) : (
+                <p className="text-center text-black opacity-70 py-4">Aucun événement</p>
+              )}
             </div>
-            <h3 className="font-bold text-gray-950 text-lg">À découvrir</h3>
-          </div>
-          <div className="space-y-2">
-            {events && events.length > 0 ? (
-              events.slice(0, 4).map((event) => (
-                <div 
-                  key={event.id} 
-                  onClick={() => navigate(`/events/${event.id}`)}
-                  className="p-3 bg-white/15 backdrop-blur-2xl border border-white/20 rounded-lg hover:bg-white/25 transition-all duration-200 group cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-semibold text-sm text-gray-950 truncate flex-1">
-                      {event.name}
-                    </p>
-                    <ChevronRight size={14} className="text-gray-500 group-hover:text-gray-700 transition shrink-0" />
+          </section>
+
+          {/* À découvrir */}
+          <section>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-[#C4DBDD] rounded-md flex items-center justify-center">
+                <AlertCircle size={18} className="text-[#2E7379]" />
+              </div>
+              <h3 className="font-semibold text-black text-lg leading-tight">À découvrir</h3>
+            </div>
+
+            <div className="space-y-2">
+              {events && events.length > 0 ? (
+                events.slice(0, 4).map((event) => (
+                  <div
+                    key={event.id}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/events/${event.id}`); }}
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    className="flex items-center justify-between bg-white rounded-md border border-[#C4DBDD] p-3 hover:shadow-sm transition duration-200 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2E7379] focus:ring-offset-2 focus:ring-offset-[#EDF0FC]"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-md bg-[#C4DBDD] flex items-center justify-center text-[#2E7379] font-semibold text-sm overflow-hidden">
+                        {event.posterUrl ? (
+                          <img src={event.posterUrl} alt={event.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <span className="text-sm text-black">{event.name?.charAt(0)}</span>
+                        )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="text-sm text-black font-medium truncate">{event.name}</p>
+                        {event.location && <p className="text-xs text-black opacity-80 truncate">{event.location}</p>}
+                      </div>
+                    </div>
+
+                    <ChevronRight size={16} className="text-[#2E7379] opacity-70" />
                   </div>
-                  
-                  {event.location && (
-                    <p className="text-xs text-gray-700 mt-1.5 flex items-center gap-1.5">
-                      <MapPin size={11} className="text-gray-600 shrink-0" />
-                      <span className="truncate">{event.location}</span>
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-700 text-sm text-center py-4">Aucun événement</p>
-            )}
-          </div>
+                ))
+              ) : (
+                <p className="text-center text-black opacity-70 py-4">Aucun événement</p>
+              )}
+            </div>
+          </section>
         </div>
-      </div>
+      </aside>
     </div>
   );
 }

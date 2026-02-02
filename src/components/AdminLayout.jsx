@@ -106,9 +106,9 @@ export default function AdminLayout({ children, pageTitle }) {
       >
         {/* Logo Section */}
         <div className="p-3 md:p-4 flex items-center justify-between border-b border-gray-200/40 flex-shrink-0">
-          <h1 className="font-bold text-lg md:text-xl text-[#2E7379] whitespace-nowrap">
-            RISE
-          </h1>
+          <button onClick={() => navigate('/dashboard')} className="hover:opacity-80 transition duration-200 flex items-center">
+            <img src="/logoblack.png" alt="RISE Logo" className="h-6 md:h-8 w-auto" />
+          </button>
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-2 hover:bg-gray-100/50 rounded-lg transition-all duration-200 text-gray-700 md:hidden"

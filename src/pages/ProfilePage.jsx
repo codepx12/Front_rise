@@ -271,7 +271,7 @@ export default function ProfilePage() {
   const coverImageUrl = previewCoverImage || getImageUrl(displayUser?.coverImageUrl) || 'https://images.unsplash.com/photo-1557672172-298e090d0f80?w=1200&h=300&fit=crop';
 
   return (
-    <MainLayout showSidebars={false}>
+    <MainLayout showSidebars={true}>
       <div className="max-w-6xl mx-auto pb-10">
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex justify-between items-center">

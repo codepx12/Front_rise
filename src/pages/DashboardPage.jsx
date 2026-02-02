@@ -230,9 +230,9 @@ export default function DashboardPage() {
 
   return (
     <MainLayout showSidebars={true}>
-      <div className="w-full py-1 px-1 sm:px-3 md:px-4 lg:px-5 h-screen  flex flex-col ">
+      <div className="w-full py-0 px-0 sm:px-3 md:px-4 lg:px-5 h-screen  flex flex-col ">
         {/* Container Principal */}
-        <div className="flex-1 overflow-y-auto max-w-full mx-auto flex gap-2 sm:gap-3 lg:gap-4 w-full bg-gray-100">
+        <div className="flex-1 overflow-y-auto py-4 px-5 max-w-full mx-auto flex gap-2 sm:gap-3 lg:gap-4 w-full bg-gray-100">
           {/* Fil d'actualité des Posts - Flexible */}
           <div className="flex-1 min-w-0 w-full">
             <section>

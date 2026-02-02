@@ -76,8 +76,8 @@ export default function DashboardLayout({ children }) {
       <header className="bg-white/70 backdrop-blur-2xl shadow-sm sticky top-0 z-50 border-b border-gray-200/60">
         <div className="max-w-full px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4 md:gap-8 flex-1">
-            <button onClick={() => navigate('/dashboard')} className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 bg-clip-text text-transparent whitespace-nowrap">
-              RISE
+            <button onClick={() => navigate('/dashboard')} className="hover:opacity-80 transition duration-200 flex items-center">
+              <img src="/logoblack.png" alt="RISE Logo" className="h-8 md:h-10 w-auto" />
             </button>
             <div className="hidden md:flex items-center bg-gray-100/60 backdrop-blur-xl rounded-2xl px-5 py-3 w-96 border border-gray-300/40 hover:border-blue-400/60 focus-within:border-blue-500/60 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300 shadow-sm">
               <Search size={18} className="text-gray-400" />
