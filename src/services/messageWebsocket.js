@@ -15,7 +15,7 @@ class MessageWebsocket {
       }
 
       // Déterminer l'URL du serveur - utiliser la même que l'API mais sans le /api
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://rise-back.onrender.com/api';
       // Remove /api suffix if present and use the base URL for SignalR hubs
       const baseUrl = apiUrl.replace(/\/api$/, '');
       const messageHubUrl = `${baseUrl}/messageHub`;
