@@ -7,8 +7,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_API_URL = "https://rise-back.onrender.com/api"
-  VITE_SIGNALR_URL = "https://rise-back.onrender.com/postHub"
+  VITE_API_URL = "https://192.168.1.181/api"
+  VITE_SIGNALR_URL = "https://192.168.1.181/postHub"
 
 # Réécriture pour SPA (Single Page Application)
 [[redirects]]

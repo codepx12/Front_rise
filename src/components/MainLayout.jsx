@@ -308,6 +308,96 @@ export default function MainLayout({ children, showSidebars = true }) {
 
       {/* Main Content with Sidebar */}
       <div className="flex pt-16 relative">
+        {/* Mobile Menu - Dropdown pour les petits écrans */}
+        {showMobileMenu && showSidebars && (
+          <div className="fixed inset-0 top-16 z-40 md:hidden bg-black/20 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)}>
+            <div 
+              className="absolute top-0 left-0 right-0 bg-gradient-to-b from-white/95 to-white/90 backdrop-blur-3xl border-b border-white/40 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <nav className="max-h-[calc(100vh-80px)] overflow-y-auto py-4 px-4 space-y-2">
+                {/* User Profile Section */}
+                <div className="pb-4 border-b border-gray-200/40">
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#2E7379] to-[#1f4f4d] rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                      {user?.profileImageUrl ? (
+                        <img
+                          src={getImageUrl(user.profileImageUrl)}
+                          alt={`${user?.firstName} ${user?.lastName}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        `${user?.firstName?.charAt(0)}${user?.lastName?.charAt(0)}`
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Navigation Items */}
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.label}
+                      onClick={item.onClick}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-gray-100/80 text-gray-800 font-medium"
+                    >
+                      <Icon size={20} className="text-[#2E7379]" />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+
+                {/* Admin Section */}
+                {adminItems.length > 0 && (
+                  <>
+                    <div className="my-2 border-t border-gray-200/40"></div>
+                    {adminItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.label}
+                          onClick={item.onClick}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-red-50/80 text-red-600 font-medium"
+                        >
+                          <Icon size={20} />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+
+                {/* Settings and Logout */}
+                <div className="my-2 border-t border-gray-200/40"></div>
+                <button 
+                  onClick={() => {
+                    navigate('/profile');
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-gray-100/80 text-gray-800 font-medium"
+                >
+                  <Settings size={20} className="text-gray-600" />
+                  <span>Profil</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-red-50/80 text-red-600 font-medium"
+                >
+                  <LogOut size={20} />
+                  <span>Déconnexion</span>
+                </button>
+              </nav>
+            </div>
+          </div>
+        )}
+
         {/* Sidebar Style Pixbling - Fixed + Absolute Overlay */}
         {showSidebars && (
           <aside 
