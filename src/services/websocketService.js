@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 
 // Construire l'URL WebSocket depuis la même URL API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.1.181:5007/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://rise-back.onrender.com:5007/api';
 const SIGNALR_URL = API_BASE_URL.replace('/api', '') + '/messageHub'; // Corrected to use /messageHub
 
 class WebSocketService {
