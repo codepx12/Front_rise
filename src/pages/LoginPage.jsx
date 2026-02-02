@@ -279,7 +279,7 @@ export default function LoginPage() {
       {/* Logo Bottom Right */}
       <div className="logo-bottom">
         <img 
-          src="/logo.png" 
+          src="/logowhite.png" 
           alt="RISE Logo"
         />
       </div>

@@ -49,3 +49,32 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Raleway', 'Nunito', sans-serif;
   font-weight: 600;
 }
+
+/* Prévenir le zoom automatique sur mobile en gardant une taille de police minimale sur les inputs */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select,
+  button {
+    font-size: 16px !important;
+  }
+}
+
+/* Désactiver le zoom tactile et le double-tap zoom */
+html {
+  touch-action: manipulation;
+}
+
+/* Éviter le zoom lors du focus sur les inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+textarea,
+select {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
