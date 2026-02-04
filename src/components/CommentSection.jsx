@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Heart, MessageCircle, Trash2, ThumbsUp, Laugh, AlertCircle, Frown, Zap } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, ThumbsUp, Laugh, AlertCircle, Frown, Zap, Send } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { getImageUrl, getProfileImageUrl } from '../services/api';
 
@@ -18,12 +18,14 @@ export default function CommentSection({ postId, comments = [], onAddComment, on
   const [taggedUsers, setTaggedUsers] = useState([]);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const textareaRef = useRef(null);
   const [expandedReplies, setExpandedReplies] = useState({});
   const [replyText, setReplyText] = useState({});
 
   const handleAddComment = async () => {
-    if (commentText.trim()) {
+    if (commentText.trim() && !isSubmitting) {
+      setIsSubmitting(true);
       try {
         await onAddComment(postId, {
           content: commentText,
@@ -33,7 +35,16 @@ export default function CommentSection({ postId, comments = [], onAddComment, on
         setTaggedUsers([]);
       } catch (error) {
         console.error('Erreur lors de l\'ajout du commentaire:', error);
+      } finally {
+        setIsSubmitting(false);
       }
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !isSubmitting) {
+      e.preventDefault();
+      handleAddComment();
     }
   };
 
@@ -72,10 +83,10 @@ export default function CommentSection({ postId, comments = [], onAddComment, on
     <div className="mt-4 border-t pt-4">
       <h3 className="font-bold text-lg mb-4">Commentaires ({comments.length})</h3>
 
-      {/* Ajouter un commentaire */}
-      <div className="mb-6 p-3 bg-white/60 backdrop-blur-lg rounded-2xl border border-gray-200/40">
-        <div className="flex gap-3 items-start">
-          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0">
+      {/* Ajouter un commentaire - Style Instagram */}
+      <div className="mb-6 pb-6 border-b border-gray-200/40">
+        <div className="flex gap-3 items-end">
+          <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0">
             <img
               src={getProfileImageUrl(user?.profileImageUrl)}
               alt={user?.firstName}
@@ -86,31 +97,37 @@ export default function CommentSection({ postId, comments = [], onAddComment, on
             />
           </div>
           <div className="flex-1">
-            <div className="relative">
+            <div className="relative flex items-center gap-2 bg-white/60 backdrop-blur-lg rounded-full border border-gray-200/40 px-4 py-2.5 hover:border-gray-300/60 transition-colors">
               <textarea
                 ref={textareaRef}
                 value={commentText}
                 onChange={handleMention}
-                placeholder="Écrivez un commentaire... (tapez @ pour mentionner quelqu'un)"
-                className="w-full p-3 border border-gray-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white/50 backdrop-blur-sm"
-                rows="3"
+                onKeyPress={handleKeyPress}
+                placeholder="Ajouter un commentaire..."
+                className="flex-1 bg-transparent outline-none resize-none text-sm placeholder-gray-400 max-h-24 scrollbar-hide"
+                rows="1"
+                style={{
+                  overflow: 'hidden',
+                  minHeight: '20px',
+                }}
               />
-              {showMentions && (
-                <div className="absolute top-full mt-1 left-0 right-0 bg-white/90 backdrop-blur-lg border border-gray-200/40 rounded-xl shadow-lg z-10 max-h-40 overflow-y-auto">
-                  <div className="p-2 text-sm text-gray-600">
-                    Suggestions de mention (mises en place - intégrer avec API)
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={handleAddComment}
+                disabled={!commentText.trim() || isSubmitting}
+                className="flex-shrink-0 text-blue-600 hover:text-blue-700 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors duration-200"
+                title="Envoyer (Ctrl+Entrée)"
+              >
+                <Send size={18} strokeWidth={2.5} />
+              </button>
             </div>
 
             {/* Utilisateurs mentionnés */}
             {taggedUsers.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-2 px-4">
                 {taggedUsers.map((u) => (
                   <span
                     key={u.id}
-                    className="inline-flex items-center gap-1 bg-blue-100/80 text-blue-700 px-2 py-1 rounded-full text-sm backdrop-blur-sm"
+                    className="inline-flex items-center gap-1 bg-blue-100/80 text-blue-700 px-2 py-1 rounded-full text-xs backdrop-blur-sm"
                   >
                     @{u.firstName}
                     <button
@@ -126,13 +143,13 @@ export default function CommentSection({ postId, comments = [], onAddComment, on
               </div>
             )}
 
-            <button
-              onClick={handleAddComment}
-              disabled={!commentText.trim()}
-              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-400 transition font-semibold shadow-md hover:shadow-lg"
-            >
-              Commenter
-            </button>
+            {showMentions && (
+              <div className="absolute top-full mt-1 left-12 right-0 bg-white/90 backdrop-blur-lg border border-gray-200/40 rounded-xl shadow-lg z-10 max-h-40 overflow-y-auto">
+                <div className="p-2 text-sm text-gray-600">
+                  Suggestions de mention (mises en place - intégrer avec API)
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -170,8 +187,8 @@ function CommentItem({ comment, onDelete, onReact, user, postId }) {
   const userReaction = reactions.find((r) => r.userId === user?.id);
 
   return (
-    <div className="flex gap-3 p-4 bg-white/60 backdrop-blur-lg rounded-2xl border border-gray-200/40 hover:shadow-md transition-shadow">
-      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0">
+    <div className="flex gap-3 p-3">
+      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0">
         {comment.userProfileImageUrl ? (
           <img
             src={getImageUrl(comment.userProfileImageUrl)}
@@ -183,7 +200,7 @@ function CommentItem({ comment, onDelete, onReact, user, postId }) {
         )}
       </div>
       <div className="flex-1">
-        <div className="bg-gray-100/50 backdrop-blur-sm rounded-xl p-3 border border-gray-200/40">
+        <div className="bg-gray-100/50 backdrop-blur-sm rounded-2xl p-3 border border-gray-200/40">
           <div className="font-semibold text-sm text-gray-900">
             {comment.userName}
           </div>
@@ -201,28 +218,28 @@ function CommentItem({ comment, onDelete, onReact, user, postId }) {
           )}
         </div>
 
-        {/* Actions de commentaire */}
-        <div className="mt-2 flex gap-4 items-center text-sm">
+        {/* Actions de commentaire - Style Instagram */}
+        <div className="mt-2 flex gap-6 items-center text-xs text-gray-600 px-1">
           <div className="relative">
             <button
               onClick={() => setShowReactions(!showReactions)}
-              className="text-gray-600 hover:text-blue-600 flex items-center gap-1 transition-colors duration-200 font-medium"
+              className="hover:text-gray-900 flex items-center gap-1.5 transition-colors duration-200 font-medium"
             >
-              <Heart size={16} />
+              <Heart size={14} />
               Réagir
             </button>
             {showReactions && (
-              <div className="absolute left-0 top-full mt-1 bg-white/90 backdrop-blur-lg border border-gray-200/40 rounded-xl shadow-lg p-3 flex gap-2 z-10">
+              <div className="absolute left-0 top-full mt-1 bg-white/95 backdrop-blur-lg border border-gray-200/40 rounded-full shadow-lg p-2 flex gap-1.5 z-10">
                 {REACTIONS.map((reaction) => {
                   const Icon = reaction.icon;
                   return (
                     <button
                       key={reaction.name}
                       onClick={() => handleReact(reaction.name)}
-                      className="p-2 hover:bg-gray-100/50 rounded-lg transition-all duration-200 hover:scale-110"
+                      className="p-1.5 hover:bg-gray-100/50 rounded-full transition-all duration-200 hover:scale-125"
                       title={reaction.label}
                     >
-                      <Icon size={18} className="text-gray-700" />
+                      <Icon size={16} className="text-gray-700" />
                     </button>
                   );
                 })}
@@ -233,9 +250,9 @@ function CommentItem({ comment, onDelete, onReact, user, postId }) {
           {user?.id === comment.userId && (
             <button
               onClick={onDelete}
-              className="text-gray-600 hover:text-red-600 flex items-center gap-1 transition-colors duration-200 font-medium"
+              className="hover:text-red-600 flex items-center gap-1.5 transition-colors duration-200 font-medium"
             >
-              <Trash2 size={16} />
+              <Trash2 size={14} />
               Supprimer
             </button>
           )}
@@ -243,13 +260,13 @@ function CommentItem({ comment, onDelete, onReact, user, postId }) {
 
         {/* Réactions affichées */}
         {reactions.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1">
             {reactions.map((reaction, idx) => {
               const reactionObj = REACTIONS.find(r => r.name === reaction.type);
               const Icon = reactionObj?.icon;
               return (
-                <span key={idx} className="bg-gray-200/50 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-gray-200/40">
-                  {Icon ? <Icon size={16} className="text-gray-700" /> : reaction.type}
+                <span key={idx} className="bg-gray-200/50 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1 border border-gray-200/40 text-xs">
+                  {Icon ? <Icon size={12} className="text-gray-700" /> : reaction.type}
                 </span>
               );
             })}

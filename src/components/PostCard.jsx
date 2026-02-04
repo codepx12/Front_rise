@@ -38,6 +38,7 @@ export default function PostCard({
   const navigate = useNavigate();
   const [localPost, setLocalPost] = useState(post);
   const [commentCount, setCommentCount] = useState(post.commentCount || 0);
+  const [isSubmittingReply, setIsSubmittingReply] = useState(null);
 
   // Synchroniser le like avec userReactions uniquement
   useEffect(() => {
@@ -373,47 +374,92 @@ export default function PostCard({
                       </button>
                     </div>
 
-                    {/* Zone de réponse */}
+                    {/* Zone de réponse - Style Instagram */}
                     {replyingTo === comment.id && (
-                      <div className="mt-3 bg-white/40 backdrop-blur-lg rounded-lg p-3 border border-gray-200/40">
-                        <textarea
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          placeholder="Écrivez une réponse..."
-                          className="w-full bg-white/50 backdrop-blur-sm border border-gray-200/40 rounded px-2 py-1 outline-none focus:border-blue-400 focus:bg-white/80 resize-none text-sm transition"
-                          rows="2"
-                        />
-                        <div className="mt-2 flex gap-2">
+                      <div className="mt-3 pt-3 border-t border-gray-200/40">
+                        <div className="flex gap-2 items-end">
+                          <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xs overflow-hidden flex-shrink-0">
+                            <img
+                              src={getProfileImageUrl(comment.userProfileImageUrl)}
+                              alt="Your avatar"
+                              onError={(e) => {
+                                e.target.src = '/profile_none.jpg';
+                              }}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 flex items-center gap-1.5 bg-white/60 backdrop-blur-lg rounded-full border border-gray-200/40 px-3 py-1.5 hover:border-gray-300/60 transition-colors">
+                            <textarea
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !isSubmittingReply && replyText.trim()) {
+                                  e.preventDefault();
+                                  const submitBtn = e.target.nextElementSibling;
+                                  submitBtn?.click();
+                                }
+                              }}
+                              placeholder="Ajouter une réponse..."
+                              disabled={isSubmittingReply === comment.id}
+                              className="flex-1 bg-transparent outline-none resize-none text-xs placeholder-gray-400 max-h-16 scrollbar-hide disabled:opacity-50"
+                              rows="1"
+                              style={{
+                                overflow: 'hidden',
+                                minHeight: '18px',
+                              }}
+                            />
+                            <button
+                              onClick={async () => {
+                                if (!replyText.trim() || isSubmittingReply === comment.id) return;
+                                
+                                setIsSubmittingReply(comment.id);
+                                try {
+                                  const response = await apiClient.post('/posts/comment', {
+                                    postId: post.id,
+                                    content: replyText,
+                                    parentCommentId: comment.id,
+                                    taggedUsernames: []
+                                  });
+                                  
+                                  // Mettre à jour l'état local au lieu de recharger la page
+                                  setLocalPost(prevPost => ({
+                                    ...prevPost,
+                                    comments: prevPost.comments.map(c => 
+                                      c.id === comment.id 
+                                        ? {
+                                            ...c,
+                                            replies: [...(c.replies || []), response.data]
+                                          }
+                                        : c
+                                    )
+                                  }));
+                                  
+                                  setReplyText('');
+                                  setReplyingTo(null);
+                                } catch (error) {
+                                  console.error('Erreur:', error);
+                                } finally {
+                                  setIsSubmittingReply(null);
+                                }
+                              }}
+                              disabled={!replyText.trim() || isSubmittingReply === comment.id}
+                              className="flex-shrink-0 text-blue-600 hover:text-blue-700 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors duration-200"
+                              title="Envoyer (Cmd+Entrée)"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,18.1272231 C0.8376543,18.9127101 0.99,19.3847722 1.77946707,19.3847722 C2.40200592,19.3847722 3.50612381,18.0151496 3.50612381,18.0151496 L14.0151496,3.34744748 C14.1721407,3.03356047 14.1721407,2.71967346 14.0151496,2.40578645 L3.50612381,1.98391289 C2.40200592,1.98391289 2.09807833,2.40578645 1.77946707,3.34744748 L0.99,7.90051413 C0.837009274,8.05760847 0.99,8.21470281 1.15159189,8.21470281 L14.0151496,9.00019157 C14.1721407,9.00019157 14.3291317,9.15728591 14.3291317,9.31438025 L14.3291317,11.1279659 C14.3291317,11.2850592 14.1721407,11.4421526 14.0151496,11.4421526 L1.15159189,12.227539 C0.994602975,12.227539 0.837009274,12.3846324 0.837009274,12.5417258 L1.77946707,16.6563168 C2.09807833,17.597977 2.40200592,18.0151496 3.50612381,18.0151496 C4.13399899,18.0151496 5.23811688,16.6563168 5.23811688,16.6563168 L16.6915026,2.40578645 C16.6915026,2.40578645 16.6915026,11.4421526 16.6915026,12.4744748 Z" />
+                              </svg>
+                            </button>
+                          </div>
                           <button
                             onClick={() => {
                               setReplyingTo(null);
                               setReplyText('');
                             }}
-                            className="flex-1 px-2 py-1 text-xs text-gray-600 hover:bg-gray-100/50 rounded transition"
+                            disabled={isSubmittingReply === comment.id}
+                            className="flex-shrink-0 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-xs font-medium px-2"
                           >
-                            Annuler
-                          </button>
-                          <button
-                            onClick={async () => {
-                              if (!replyText.trim()) return;
-                              try {
-                                await apiClient.post('/posts/comment', {
-                                  postId: post.id,
-                                  content: replyText,
-                                  parentCommentId: comment.id,
-                                  taggedUsernames: []
-                                });
-                                setReplyText('');
-                                setReplyingTo(null);
-                                fetchPosts();
-                              } catch (error) {
-                                console.error('Erreur:', error);
-                              }
-                            }}
-                            disabled={!replyText.trim()}
-                            className="flex-1 px-2 py-1 text-xs bg-[#3A8B89] hover:bg-[#2F6F6D] text-white/80 rounded transition disabled:opacity-50 backdrop-blur-sm"
-                          >
-                            Répondre
+                            ✕
                           </button>
                         </div>
                       </div>
@@ -455,27 +501,55 @@ export default function PostCard({
 
           {/* Comment Input */}
           {selectedPostForComment === post.id ? (
-            <div className="space-y-2 border-t border-gray-200/40 pt-3">
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Écrivez votre commentaire..."
-                className="w-full bg-white/50 backdrop-blur-lg border border-gray-200/40 rounded-lg px-3 py-2 outline-none focus:border-blue-400 focus:bg-white/80 resize-none text-sm transition"
-                rows="3"
-              />
-              <div className="flex gap-2">
+            <div className="border-t border-gray-200/40 pt-3">
+              <div className="flex gap-2 items-end">
+                <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xs overflow-hidden flex-shrink-0">
+                  <img
+                    src={getProfileImageUrl(post.createdByProfileImage)}
+                    alt="Your avatar"
+                    onError={(e) => {
+                      e.target.src = '/profile_none.jpg';
+                    }}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 flex items-center gap-1.5 bg-white/60 backdrop-blur-lg rounded-full border border-gray-200/40 px-3 py-1.5 hover:border-gray-300/60 transition-colors">
+                  <textarea
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && commentText.trim()) {
+                        e.preventDefault();
+                        onCommentSend();
+                      }
+                    }}
+                    placeholder="Ajouter un commentaire..."
+                    className="flex-1 bg-transparent outline-none resize-none text-xs placeholder-gray-400 max-h-16 scrollbar-hide"
+                    rows="1"
+                    style={{
+                      overflow: 'hidden',
+                      minHeight: '18px',
+                    }}
+                  />
+                  <button
+                    onClick={onCommentSend}
+                    disabled={!commentText.trim()}
+                    className="flex-shrink-0 text-blue-600 hover:text-blue-700 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors duration-200"
+                    title="Envoyer (Cmd+Entrée)"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,18.1272231 C0.8376543,18.9127101 0.99,19.3847722 1.77946707,19.3847722 C2.40200592,19.3847722 3.50612381,18.0151496 3.50612381,18.0151496 L14.0151496,3.34744748 C14.1721407,3.03356047 14.1721407,2.71967346 14.0151496,2.40578645 L3.50612381,1.98391289 C2.40200592,1.98391289 2.09807833,2.40578645 1.77946707,3.34744748 L0.99,7.90051413 C0.837009274,8.05760847 0.99,8.21470281 1.15159189,8.21470281 L14.0151496,9.00019157 C14.1721407,9.00019157 14.3291317,9.15728591 14.3291317,9.31438025 L14.3291317,11.1279659 C14.3291317,11.2850592 14.1721407,11.4421526 14.0151496,11.4421526 L1.15159189,12.227539 C0.994602975,12.227539 0.837009274,12.3846324 0.837009274,12.5417258 L1.77946707,16.6563168 C2.09807833,17.597977 2.40200592,18.0151496 3.50612381,18.0151496 C4.13399899,18.0151496 5.23811688,16.6563168 5.23811688,16.6563168 L16.6915026,2.40578645 C16.6915026,2.40578645 16.6915026,11.4421526 16.6915026,12.4744748 Z" />
+                    </svg>
+                  </button>
+                </div>
                 <button
-                  onClick={() => setSelectedPostForComment(null)}
-                  className="flex-1 px-3 py-1 text-sm text-gray-600 hover:bg-gray-100/50 rounded transition"
+                  onClick={() => {
+                    setSelectedPostForComment(null);
+                    setCommentText('');
+                  }}
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-200 text-xs font-medium px-2"
                 >
-                  Annuler
-                </button>
-                <button
-                  onClick={onCommentSend}
-                  disabled={!commentText.trim()}
-                  className="flex-1 px-3 py-1 text-sm bg-[#3A8B89] hover:bg-[#2F6F6D] text-white/80 rounded transition disabled:opacity-50 disabled:cursor-not-allowed font-medium backdrop-blur-sm"
-                >
-                  Publier
+                  ✕
                 </button>
               </div>
             </div>
