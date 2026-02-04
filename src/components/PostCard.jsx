@@ -344,7 +344,9 @@ export default function PostCard({
         <div className="bg-white/20 backdrop-blur-lg px-4 py-3 border-t border-gray-200/40">
           {localPost.comments && localPost.comments.length > 0 ? (
             <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
-              {localPost.comments.map((comment) => (
+              {localPost.comments
+                .filter(comment => !comment.parentCommentId) // ✅ Filtrer pour ne montrer que les commentaires principaux
+                .map((comment) => (
                 <div key={comment.id} className="flex gap-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
                     <img
@@ -421,7 +423,7 @@ export default function PostCard({
                                     taggedUsernames: []
                                   });
                                   
-                                  // Mettre à jour l'état local au lieu de recharger la page
+                                  // ✅ Mettre à jour correctement : ajouter la réponse dans les replies du commentaire parent
                                   setLocalPost(prevPost => ({
                                     ...prevPost,
                                     comments: prevPost.comments.map(c => 
