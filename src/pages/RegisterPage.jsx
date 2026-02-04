@@ -1,6 +1,75 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { ChevronDown } from 'lucide-react';
+
+// Custom Dropdown Component
+function CustomSelect({ value, onChange, options, placeholder = 'Sélectionner' }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="auth-select w-full px-3 py-2 rounded-2xl flex items-center justify-between text-left"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.3), inset -1px -1px 2px rgba(0, 0, 0, 0.1), 0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+          color: 'white',
+          fontSize: '16px',
+          cursor: 'pointer',
+        }}
+      >
+        <span>{value || placeholder}</span>
+        <ChevronDown size={16} style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+      </button>
+
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+
+          {/* Dropdown Menu */}
+          <div
+            className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl shadow-lg overflow-hidden border border-white/40"
+            style={{
+              background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(50, 50, 50, 0.9) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              maxHeight: '300px',
+              overflowY: 'auto',
+              minWidth: '200px',
+            }}
+          >
+            {options.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => {
+                  onChange(option);
+                  setIsOpen(false);
+                }}
+                className="w-full px-4 py-3 text-left text-white hover:bg-white/20 transition-colors border-b border-white/10 last:border-b-0 text-base"
+                style={{
+                  fontSize: '16px',
+                }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -24,6 +93,17 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'classe' && value === 'L1') {
+        updated.filiere = '';
+      }
+      return updated;
+    });
+    setValidationError('');
+  };
+
+  const handleSelectChange = (name, value) => {
     setFormData((prev) => {
       const updated = { ...prev, [name]: value };
       if (name === 'classe' && value === 'L1') {
@@ -352,31 +432,20 @@ export default function RegisterPage() {
           <div className="form-grid">
             <div>
               <label className="auth-label block mb-1">Classe</label>
-              <select
-                name="classe"
+              <CustomSelect
                 value={formData.classe}
-                onChange={handleChange}
-                className="auth-select w-full px-3 py-2 rounded-2xl"
-              >
-                {classes.map((cls) => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
+                onChange={(value) => handleSelectChange('classe', value)}
+                options={classes}
+              />
             </div>
             {showFiliere && (
               <div>
                 <label className="auth-label block mb-1">Filière *</label>
-                <select
-                  name="filiere"
+                <CustomSelect
                   value={formData.filiere}
-                  onChange={handleChange}
-                  className="auth-select w-full px-3 py-2 rounded-2xl"
-                >
-                  <option value="">Sélectionner</option>
-                  {filieres.map((fil) => (
-                    <option key={fil} value={fil}>{fil}</option>
-                  ))}
-                </select>
+                  onChange={(value) => handleSelectChange('filiere', value)}
+                  options={filieres}
+                />
               </div>
             )}
           </div>
